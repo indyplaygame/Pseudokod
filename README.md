@@ -165,7 +165,7 @@ This is a multi line comment
 ### 14. Ending program
 **Syntax:**
 ```
-who_understands?;
+who understands?;
 ```
 
-**Alternative to 'who_understands?':** `kto rozumie?`.
+**Alternative to 'who understands?':** `kto rozumie?`.
