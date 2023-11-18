@@ -144,7 +144,7 @@ function_name(arg, arg1);
 ```
 
 **Alternative to the 'data' keyword:** `dane`.<br>
-**Alternative to the 'results' keyword:** `wyniiki`.
+**Alternative to the 'results' keyword:** `wyniki`.
 
 ### 12. Exceptions
 **Possible exceptions:**
