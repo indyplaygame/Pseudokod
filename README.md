@@ -150,6 +150,9 @@ function_name(arg, arg1);
 ### 12. Exceptions
 **Possible exceptions:**
 ```
+UnrecognizedCharacterException: Character 'character' is unrecognizable and cannot be converted to Token.
+UnexpectedTokenException: Unexpected token found during parsing: {value: "value", type: type}.
+MissingTokenException: Unexpected token found. Expected 'type' token, found 'type'.
 IllegalConditionException: 'true' condition in while loop is not allowed.
 RecursionError: function cannot call itself.
 ```

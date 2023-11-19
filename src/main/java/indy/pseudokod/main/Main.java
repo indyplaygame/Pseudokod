@@ -1,25 +1,59 @@
 package indy.pseudokod.main;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import indy.pseudokod.ast.Program;
+import indy.pseudokod.ast.Statement;
 import indy.pseudokod.lexer.Lexer;
 import indy.pseudokod.lexer.Token;
+import indy.pseudokod.parser.Parser;
+import indy.pseudokod.utils.Utils;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.List;
+import java.util.Scanner;
+
 
 public class Main {
 
-    public static void printStructure(Token[] tokens) {
-        System.out.println("[");
-        for(Token token : tokens) {
-            System.out.println("\t{\"value\": \"" + token.value() + "\", \"type\": " + token.type() + "},");
+    public static String readFile(String path) throws FileNotFoundException {
+        File file = new File(path);
+        Scanner scanner = new Scanner(file);
+        String code = "";
+
+        while(scanner.hasNextLine()) {
+            code += scanner.nextLine();
+            if (scanner.hasNextLine()) code += "\n";
         }
-        System.out.println("]");
+
+        return code;
+    }
+
+    public static void repl() throws Throwable {
+        final Parser parser = new Parser();
+        final Scanner scanner = new Scanner(System.in);
+        String input;
+
+        System.out.println("Pseudokod v1.0-Pre.");
+
+        while(true) {
+            System.out.print("> ");
+            input = scanner.nextLine();
+            final Program program = parser.produceAST(input);
+
+            if(input.equals("exit")) return;
+
+            System.out.println(Utils.stringifyProgram(program));
+        }
     }
 
     public static void main(String[] args) throws Throwable {
-        String code = """
-            dane:
-                \tliczba x ∈ (5, 10) := 6,
-                \tznak y in (0, 10) <- 5,
-                \ttekst z
-        """;
-        printStructure(Lexer.tokenize(code));
+        repl();
+//        String code = readFile("./test.pk");
+//        Parser parser = new Parser();
+//
+////        printStructure(Lexer.tokenize(code));
+//        System.out.println(parser.produceAST(code));
     }
 }

@@ -39,7 +39,7 @@ public class Lexer {
         keywords.put("div", TokenType.DivOperator);
     }
 
-    public static Token[] tokenize(String source) throws Throwable {
+    public static List<Token> tokenize(String source) throws Throwable {
         final ArrayList<Token> tokens = new ArrayList<>();
         final ArrayList<String> src = new ArrayList<>(List.of(source.split("")));
         final ArrayList<String> operators = new ArrayList<>(List.of(new String[]{"+", "-", "*", "/"}));
@@ -116,6 +116,6 @@ public class Lexer {
         }
         tokens.add(new Token("EndOfFile", TokenType.EndOfFile));
 
-        return tokens.toArray(new Token[0]);
+        return tokens;
     }
 }
