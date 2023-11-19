@@ -6,12 +6,12 @@ Pseudokod's adaptation as a programming language.
 **Syntax:**
 ```
 data:
-  data_type variable_name (∈ range <- value);
-  data_type variable1_name (∈ range := value);
+  data_type variable_name (∈ range <- value),
+  data_type variable1_name (∈ range := value)
 
 dane:
-  data_type variable_name (∈ range <- value);
-  data_type variable1_name (∈ range := value);
+  data_type variable_name (∈ range <- value),
+  data_type variable1_name (∈ range := value)
 ```
 
 **Available data types:**
@@ -20,6 +20,7 @@ dane:
 - `string` (Alternatively: `tekst`).
 - `boolean` (Alternatively: `logiczna`).
 - `list` (Alternatively: `tablica`).
+- `range` (Alternatively: `przedzial`)
 
 **Important note about lists in pseudokod: list indexes start from 1.**
 
@@ -38,8 +39,8 @@ dane:
 - `[a, b]` - closed interval (All numbers, between `a` and `b` including `a` and `b`).
 
 **Contstant numbers**:
-- infinity (Alternatively: `nieskonczonosc`, `∞`).
-- pi (Alternatively: `π`).
+- infinity (Alternatively: `nieskonczonosc`, `∞`) - `9,223,372,036,854,775,807`.
+- pi (Alternatively: `π`) - `3.14159265359`.
 
 **Alternatives to the '∈' sign:** `belongs`, `in`, `nalezy`, `w`.
 
@@ -63,7 +64,7 @@ variable_name := value;
 **Available logical operators:**
 - Conjunction (`AND`, `I`, `∧`).
 - Alternative (`OR`, `LUB`, `∨`).
-- Negation (`NOT`, `NIE`, `¬`, `-`, `~`).
+- Negation (`NOT`, `NIE`, `¬`, `~`).
 
 ### 5. Arithmetical operators
 **Available arithmetical operators:**
@@ -101,7 +102,7 @@ if condition
 
 **Alternatives to the 'if' statement:** `jezeli`, `jesli`.
 
-### 11. While loop (Do-while)
+### 9. While loop (Do-while)
 **Syntax:**
 ```
 // While loop
@@ -169,3 +170,5 @@ who understands?;
 ```
 
 **Alternative to 'who understands?':** `kto rozumie?`.
+
+## Tokens
