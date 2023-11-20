@@ -3,7 +3,8 @@ package indy.pseudokod.ast;
 public class Statement {
     NodeType kind;
 
-    public Statement() {
+    public Statement(NodeType kind) {
+        this.kind = kind;
     }
 
     public NodeType kind() {

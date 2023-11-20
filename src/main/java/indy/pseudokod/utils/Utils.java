@@ -3,16 +3,20 @@ package indy.pseudokod.utils;
 import indy.pseudokod.ast.*;
 import indy.pseudokod.exceptions.UnrecognizedStatementException;
 import indy.pseudokod.lexer.Token;
+import indy.pseudokod.runtime.values.*;
 
 import java.util.List;
 
 public class Utils {
-    public static void printStructure(List<Token> tokens) {
-        System.out.println("[");
+    public static String stringifyTokens(List<Token> tokens) {
+        String result = "[\n";
+
         for(Token token : tokens) {
-            System.out.println("\t{value: \"" + token.value() + "\", type: " + token.type() + "},");
+            result += "\t{value: \"" + token.value() + "\", type: " + token.type() + "},\n";
         }
-        System.out.println("]");
+
+        result += "]";
+        return result;
     }
 
     public static String stringifyProgram(Program program) throws UnrecognizedStatementException {
@@ -22,7 +26,7 @@ public class Utils {
             result += stringifyStatement(statement);
         }
 
-        result += "\n]}";
+        result += "]}";
         return result;
     }
 
@@ -38,6 +42,12 @@ public class Utils {
                 break;
             case BinaryExpression:
                 result += "{\n" + stringifyBinaryExpression((BinaryExpression) statement) + "}";
+                break;
+            case DataDeclaration:
+                result += "{" + stringifyDataDeclaration((DataDeclaration) statement) + "}";
+                break;
+            case VariableDeclaration:
+                result += "\t{" + stringifyVariableDeclaration((VariableDeclaration) statement) + "}";
                 break;
             default:
                 throw new UnrecognizedStatementException(statement);
@@ -61,5 +71,36 @@ public class Utils {
             "\toperator: \"" + expression.operator() + "\"";
 
         return result;
+    }
+
+    public static String stringifyDataDeclaration(DataDeclaration expression) throws UnrecognizedStatementException {
+        String result = "kind: \"" + expression.kind() + "\", body: [\n";
+
+        for(Statement statement : expression.body()) {
+            result += stringifyStatement(statement) + ",\n";
+        }
+
+        result += "]";
+
+        return result;
+    }
+
+    public static String stringifyVariableDeclaration(VariableDeclaration expression) throws UnrecognizedStatementException {
+        String result = "kind: \"" + expression.kind() + "\",type: " + expression.type() +", symbol: \"" + expression.symbol() + "\", constant: " + expression.constant() + ", value: ";
+
+        if(expression.value() != null) {
+            result += "{" + stringifyStatement(expression.value()) + "\n}";
+        } else {
+            result += "null";
+        }
+
+        return result;
+    }
+
+    public static String stringifyRuntimeValue(RuntimeValue value) {
+        if(value.type() == ValueType.Number) return "{type: " + value.type() + ", value: \"" + ((NumberValue) value).value() + "\"}";
+        else if(value.type() == ValueType.Boolean) return "{type: " + value.type() + ", value: \"" + ((BooleanValue) value).value() + "\"}";
+        else if(value.type() == ValueType.NULL) return "{type: " + value.type() + ", value: \"" + ((NullValue) value).value() + "\"}";
+        else return "{type: " + value.type() + "}";
     }
 }

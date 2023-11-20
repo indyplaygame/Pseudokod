@@ -2,6 +2,7 @@ package indy.pseudokod.lexer;
 
 public enum TokenType {
     Number,
+    Range,
     Identifier,
     Assignment,
     InRange,
@@ -26,11 +27,6 @@ public enum TokenType {
     Colon,
     Semicolon,
     Comma,
-    NumberType,
-    CharType,
-    StringType,
-    BooleanType,
-    ListType,
-    RangeType,
+    Null,
     EndOfFile
 }

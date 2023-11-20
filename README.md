@@ -6,23 +6,22 @@ Pseudokod's adaptation as a programming language.
 **Syntax:**
 ```
 data:
-  data_type variable_name (∈ range <- value),
-  data_type variable1_name (∈ range := value)
+  data_type variable_name (∈ range/set <- value),
+  data_type variable1_name (∈ range/set := value)
 
 dane:
-  data_type variable_name (∈ range <- value),
-  data_type variable1_name (∈ range := value)
+  data_type variable_name (∈ range/set <- value),
+  data_type variable1_name (∈ range/set := value)
 ```
 
 **Available data types:**
 - `number` (Alternatively: `liczba`).
 - `char` (Alternatively: `znak`).
 - `string` (Alternatively: `tekst`).
-- `boolean` (Alternatively: `logiczna`).
+- `boolean` (Alternatively: `logiczny`).
 - `list` (Alternatively: `tablica`).
-- `range` (Alternatively: `przedzial`)
-
-**Important note about lists in pseudokod: list indexes start from 1.**
+- `set` (Alternatively: `zbior`)
+- `range` (Alternatively: `przedzial`)'
 
 **Available ranges (optional, only for numbers):**
 - `N` - Natural numbers (Positive integers including zero).
@@ -31,18 +30,23 @@ dane:
 - `Z+` - Positive integers.
 - `Z-` - Negative integers.
 - `Q` - Rational numbers.
-- `{0, 1, 2}` - set of numbers.
-- `{0, 1, ..., n}` - set of numbers.
 - `(a, b)` - open interval (All numbers between `a` and `b` axcluding `a` and `b`).
 - `(a, b]` - left-open interval (All numbers between `a` and `b` excluding `a` and including `b`).
 - `[a, b)` - right-open interval (All numbers, between `a` and `b` including `a` and excluding `b`).
 - `[a, b]` - closed interval (All numbers, between `a` and `b` including `a` and `b`).
 
+**Available sets (optional, only for numbers):**
+- `{0, 1, 2}` - set of numbers.
+- `{0, 1, ..., n}` - set of numbers.
+
 **Contstant numbers**:
 - infinity (Alternatively: `nieskonczonosc`, `∞`) - `9,223,372,036,854,775,807`.
-- pi (Alternatively: `π`) - `3.14159265359`.
+- pi (Alternatively: `π`) - `3.141592653589793`.
 
 **Alternatives to the '∈' sign:** `belongs`, `in`, `nalezy`, `w`.
+
+> [!WARNING]
+> **Important note about lists in pseudokod: list indexes start from 1.**
 
 ### 2. Assigning values to variables
 **Syntax:**
@@ -153,6 +157,12 @@ function_name(arg, arg1);
 UnrecognizedCharacterException: Character 'character' is unrecognizable and cannot be converted to Token.
 UnexpectedTokenException: Unexpected token found during parsing: {value: "value", type: type}.
 MissingTokenException: Unexpected token found. Expected 'type' token, found 'type'.
+ASTNodeNotSetupException: This AST node has not yet been setup for interpretation: type.
+DivisionByZeroException: Division by zero is not allowed.
+VariableDeclaredException: Cannot declare a new variable: variable named 'name' is already defined.
+VariableNotDeclaredException: Cannot assign a value to variable: variable named 'name' does not exist.
+IllegalDataTypeException: Data type 'type' is not allowed here.
+MissingIdentifierException: Identifier expected in AssignmentExpression, but found: statement.
 IllegalConditionException: 'true' condition in while loop is not allowed.
 RecursionError: function cannot call itself.
 ```

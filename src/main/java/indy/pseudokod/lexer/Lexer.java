@@ -13,18 +13,20 @@ public class Lexer {
     static {
         keywords.put("data", TokenType.DataToken);
         keywords.put("dane", TokenType.DataToken);
-        keywords.put("number", TokenType.NumberType);
-        keywords.put("liczba", TokenType.NumberType);
-        keywords.put("char", TokenType.CharType);
-        keywords.put("znak", TokenType.CharType);
-        keywords.put("string", TokenType.StringType);
-        keywords.put("tekst", TokenType.StringType);
-        keywords.put("boolean", TokenType.BooleanType);
-        keywords.put("logiczny", TokenType.BooleanType);
-        keywords.put("list", TokenType.ListType);
-        keywords.put("tablica", TokenType.ListType);
-        keywords.put("range", TokenType.RangeType);
-        keywords.put("przedzial", TokenType.RangeType);
+        keywords.put("number", TokenType.DataType);
+        keywords.put("liczba", TokenType.DataType);
+        keywords.put("char", TokenType.DataType);
+        keywords.put("znak", TokenType.DataType);
+        keywords.put("string", TokenType.DataType);
+        keywords.put("tekst", TokenType.DataType);
+        keywords.put("boolean", TokenType.DataType);
+        keywords.put("logiczny", TokenType.DataType);
+        keywords.put("list", TokenType.DataType);
+        keywords.put("tablica", TokenType.DataType);
+        keywords.put("set", TokenType.DataType);
+        keywords.put("zbior", TokenType.DataType);
+        keywords.put("range", TokenType.DataType);
+        keywords.put("przedzial", TokenType.DataType);
         keywords.put("belongs", TokenType.InRange);
         keywords.put("in", TokenType.InRange);
         keywords.put("nalezy", TokenType.InRange);
@@ -43,11 +45,13 @@ public class Lexer {
         final ArrayList<Token> tokens = new ArrayList<>();
         final ArrayList<String> src = new ArrayList<>(List.of(source.split("")));
         final ArrayList<String> operators = new ArrayList<>(List.of(new String[]{"+", "-", "*", "/"}));
+        final ArrayList<String> ranges = new ArrayList<>(List.of(new String[]{"N", "Z", "Q"}));
 
-        while(src.size() > 0) {
+        while(!src.isEmpty()) {
             if(src.get(0).equals("(")) tokens.add(new Token(src.remove(0), TokenType.OpenParenthesis));
             else if(src.get(0).equals(")")) tokens.add(new Token(src.remove(0), TokenType.CloseParenthesis));
             else if(operators.contains(src.get(0))) tokens.add(new Token(src.remove(0), TokenType.BinaryOperator));
+            else if(ranges.contains(src.get(0))) tokens.add(new Token(src.remove(0), TokenType.Range));
             else if(src.get(0).equals("=")) tokens.add(new Token(src.remove(0), TokenType.Equal));
             else if(src.get(0).equals("≠")) tokens.add(new Token(src.remove(0), TokenType.NotEqual));
             else if(src.get(0).equals("≤")) tokens.add(new Token(src.remove(0), TokenType.LessOrEqual));
@@ -55,31 +59,31 @@ public class Lexer {
             else if(src.get(0).equals("!")) {
                 String value = src.remove(0);
 
-                if(src.size() > 0 && src.get(0).equals("=")) {
+                if(!src.isEmpty() && src.get(0).equals("=")) {
                     value += src.remove(0);
                     tokens.add(new Token(value, TokenType.NotEqual));
                 } else throw new UnrecognizedCharacterException(src.get(0));
             } else if(src.get(0).equals("<")) {
                 String value = src.remove(0);
 
-                if(src.size() > 0 && src.get(0).equals("-")) {
+                if(!src.isEmpty() && src.get(0).equals("-")) {
                     value += src.remove(0);
                     tokens.add(new Token(value, TokenType.Assignment));
-                } else if(src.size() > 0 && src.get(0).equals("=")) {
+                } else if(!src.isEmpty() && src.get(0).equals("=")) {
                     value += src.remove(0);
                     tokens.add(new Token(value, TokenType.LessOrEqual));
                 } else tokens.add(new Token(value, TokenType.LessThan));
             } else if(src.get(0).equals(">")) {
                 String value = src.remove(0);
 
-                if(src.size() > 0 && src.get(0).equals("=")) {
+                if(!src.isEmpty() && src.get(0).equals("=")) {
                     value += src.remove(0);
                     tokens.add(new Token(value, TokenType.GreaterOrEqual));
                 } else tokens.add(new Token(value, TokenType.GreaterThan));
             } else if(src.get(0).equals(":")) {
                 String value = src.remove(0);
 
-                if(src.size() > 0 && src.get(0).equals("=")) {
+                if(!src.isEmpty() && src.get(0).equals("=")) {
                     value += src.remove(0);
                     tokens.add(new Token(value, TokenType.Assignment));
                 } else tokens.add(new Token(value, TokenType.Colon));
@@ -99,19 +103,21 @@ public class Lexer {
             } else {
                 if(Character.isDigit(src.get(0).codePointAt(0))) {
                     String value = "";
-                    while(src.size() > 0 && Character.isDigit(src.get(0).codePointAt(0))) {
+                    while(!src.isEmpty() && Character.isDigit(src.get(0).codePointAt(0))) {
                         value += src.remove(0);
                     }
                     tokens.add(new Token(value, TokenType.Number));
                 } else if(Character.isAlphabetic(src.get(0).charAt(0))) {
                     String value = "";
-                    while(src.size() > 0 && Character.isAlphabetic(src.get(0).codePointAt(0))) {
+                    while(!src.isEmpty() && Character.isAlphabetic(src.get(0).codePointAt(0))) {
                         value += src.remove(0);
                     }
-                    if(!keywords.containsKey(value)) tokens.add(new Token(value, TokenType.Identifier));
-                    else tokens.add(new Token(value, keywords.get(value)));
+
+                    tokens.add(new Token(value, keywords.getOrDefault(value, TokenType.Identifier)));
                 } else if(src.get(0).equals(" ")) src.remove(0);
-                else throw new UnrecognizedCharacterException(src.get(0));
+                else {
+                    throw new UnrecognizedCharacterException(src.get(0));
+                }
             }
         }
         tokens.add(new Token("EndOfFile", TokenType.EndOfFile));

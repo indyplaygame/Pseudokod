@@ -1,37 +1,55 @@
 package indy.pseudokod.main;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import indy.pseudokod.ast.DataDeclaration;
 import indy.pseudokod.ast.Program;
 import indy.pseudokod.ast.Statement;
+import indy.pseudokod.ast.VariableDeclaration;
+import indy.pseudokod.environment.Environment;
 import indy.pseudokod.lexer.Lexer;
-import indy.pseudokod.lexer.Token;
 import indy.pseudokod.parser.Parser;
+import indy.pseudokod.runtime.Interpreter;
+import indy.pseudokod.runtime.values.BooleanValue;
+import indy.pseudokod.runtime.values.NullValue;
+import indy.pseudokod.runtime.values.NumberValue;
 import indy.pseudokod.utils.Utils;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.List;
+import java.io.*;
 import java.util.Scanner;
 
 
 public class Main {
+    static final Parser parser = new Parser();
+    static Environment env;
 
-    public static String readFile(String path) throws FileNotFoundException {
+    public static void setupEnvironment() throws Throwable {
+        env = new Environment();
+        env.declareVariable("true", new BooleanValue(true));
+        env.declareVariable("false", new BooleanValue(false));
+        env.declareVariable("null", new NullValue());
+        env.declareVariable("infinity", new NumberValue(Double.MAX_VALUE));
+        env.declareVariable("pi", new NumberValue(Math.PI));
+        env.declareVariable("π", new NumberValue(Math.PI));
+    }
+
+    public static String readFile(String path) {
         File file = new File(path);
-        Scanner scanner = new Scanner(file);
         String code = "";
+        String line;
 
-        while(scanner.hasNextLine()) {
-            code += scanner.nextLine();
-            if (scanner.hasNextLine()) code += "\n";
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            line = reader.readLine();
+            do {
+                code += line;
+                if((line = reader.readLine()) != null) code += "\n";
+            } while (line != null);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
         return code;
     }
 
     public static void repl() throws Throwable {
-        final Parser parser = new Parser();
         final Scanner scanner = new Scanner(System.in);
         String input;
 
@@ -44,16 +62,21 @@ public class Main {
 
             if(input.equals("exit")) return;
 
-            System.out.println(Utils.stringifyProgram(program));
+            System.out.println(Utils.stringifyRuntimeValue(Interpreter.evaluate(program, env)));
         }
     }
 
+    public static void run(String path) throws Throwable {
+        final String code = readFile(path);
+        final Program program = parser.produceAST(code);
+
+//        System.out.println(Utils.stringifyProgram(program));
+        System.out.println(Utils.stringifyRuntimeValue(Interpreter.evaluate(program, env)));
+    }
+
     public static void main(String[] args) throws Throwable {
-        repl();
-//        String code = readFile("./test.pk");
-//        Parser parser = new Parser();
-//
-////        printStructure(Lexer.tokenize(code));
-//        System.out.println(parser.produceAST(code));
+        setupEnvironment();
+        run("./test.pk");
+//        repl();
     }
 }
