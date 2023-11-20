@@ -32,14 +32,14 @@ dane:
 - `Q` - Rational numbers.
 - `(a, b)` - open interval (All numbers between `a` and `b` axcluding `a` and `b`).
 - `(a, b]` - left-open interval (All numbers between `a` and `b` excluding `a` and including `b`).
-- `[a, b)` - right-open interval (All numbers, between `a` and `b` including `a` and excluding `b`).
-- `[a, b]` - closed interval (All numbers, between `a` and `b` including `a` and `b`).
+- `[a, b)` - right-open interval (All numbers between `a` and `b` including `a` and excluding `b`).
+- `[a, b]` - closed interval (All numbers between `a` and `b` including `a` and `b`).
 
 **Available sets (optional, only for numbers):**
 - `{0, 1, 2}` - set of numbers.
 - `{0, 1, ..., n}` - set of numbers.
 
-**Contstant numbers**:
+**Constant numbers**:
 - infinity (Alternatively: `nieskonczonosc`, `∞`) - `9,223,372,036,854,775,807`.
 - pi (Alternatively: `π`) - `3.141592653589793`.
 
