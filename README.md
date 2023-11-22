@@ -20,8 +20,8 @@ dane:
 - `string` (Alternatively: `tekst`).
 - `boolean` (Alternatively: `logiczny`).
 - `list` (Alternatively: `tablica`).
-- `set` (Alternatively: `zbior`)
-- `range` (Alternatively: `przedzial`)'
+- `set` (Alternatively: `zbior`).
+- `range` (Alternatively: `przedzial`).
 
 **Available ranges (optional, only for numbers):**
 - `N` - Natural numbers (Positive integers including zero).
@@ -30,7 +30,7 @@ dane:
 - `Z+` - Positive integers.
 - `Z-` - Negative integers.
 - `Q` - Rational numbers.
-- `(a, b)` - open interval (All numbers between `a` and `b` axcluding `a` and `b`).
+- `(a, b)` - open interval (All numbers between `a` and `b` excluding `a` and `b`).
 - `(a, b]` - left-open interval (All numbers between `a` and `b` excluding `a` and including `b`).
 - `[a, b)` - right-open interval (All numbers between `a` and `b` including `a` and excluding `b`).
 - `[a, b]` - closed interval (All numbers between `a` and `b` including `a` and `b`).
@@ -86,7 +86,7 @@ print "text";
 print variable_name;
 ```
 
-**Alternatives to the 'print' statement:** `write`, `wypisz`.
+**Alternatives to the 'print' statement:** `write`, `input`, `wypisz`, `wprowadz`.
 
 ### 7. Getting data from the user.
 **Syntax:**
@@ -162,7 +162,13 @@ DivisionByZeroException: Division by zero is not allowed.
 VariableDeclaredException: Cannot declare a new variable: variable named 'name' is already defined.
 VariableNotDeclaredException: Cannot assign a value to variable: variable named 'name' does not exist.
 IllegalDataTypeException: Data type 'type' is not allowed here.
-MissingIdentifierException: Identifier expected in AssignmentExpression, but found: statement.
+MissingIdentifierException: Identifier expected in 'expression', but found: statement.
+IncompatibleDataTypeException: Data type 'type' was expected here, but received 'type'.
+ConstantAssignmentException: Cannot assign value to 'name' because it is a constant.
+StringTerminationException: Unterminated string found, expected the 'character' character to terminate the string.
+CharactersAmountException: Expected single character (found 'amount' of them).
+IllegalIndexTypeException: Identifier or NumericLiteral expected as list index, received 'type'.
+InvalidConversionDataTypeException: 'Type' cannot be converted to 'type'.
 IllegalConditionException: 'true' condition in while loop is not allowed.
 RecursionError: function cannot call itself.
 ```

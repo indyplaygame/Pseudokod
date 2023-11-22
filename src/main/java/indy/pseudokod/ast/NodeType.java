@@ -4,8 +4,13 @@ public enum NodeType {
     BinaryExpression,
     Identifier,
     NumericLiteral,
+    CharacterLiteral,
+    StringLiteral,
+    BooleanLiteral,
+    ArrayLiteral,
     Program,
     DataDeclaration,
     VariableDeclaration,
-    AssignmentExpression
+    AssignmentExpression,
+    IndexExpression
 }

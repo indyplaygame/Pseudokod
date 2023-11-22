@@ -6,7 +6,7 @@ public class ListValue extends RuntimeValue{
     private List<RuntimeValue> value;
 
     public ListValue(List<RuntimeValue> value) {
-        super(ValueType.String);
+        super(ValueType.List);
         this.value = value;
     }
 

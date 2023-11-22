@@ -1,4 +1,5 @@
 package indy.pseudokod.lexer;
+import indy.pseudokod.exceptions.StringTerminationException;
 import indy.pseudokod.exceptions.UnrecognizedCharacterException;
 
 import java.util.ArrayList;
@@ -50,6 +51,8 @@ public class Lexer {
         while(!src.isEmpty()) {
             if(src.get(0).equals("(")) tokens.add(new Token(src.remove(0), TokenType.OpenParenthesis));
             else if(src.get(0).equals(")")) tokens.add(new Token(src.remove(0), TokenType.CloseParenthesis));
+            else if(src.get(0).equals("[")) tokens.add(new Token(src.remove(0), TokenType.OpenBracket));
+            else if(src.get(0).equals("]")) tokens.add(new Token(src.remove(0), TokenType.CloseBracket));
             else if(operators.contains(src.get(0))) tokens.add(new Token(src.remove(0), TokenType.BinaryOperator));
             else if(ranges.contains(src.get(0))) tokens.add(new Token(src.remove(0), TokenType.Range));
             else if(src.get(0).equals("=")) tokens.add(new Token(src.remove(0), TokenType.Equal));
@@ -93,7 +96,34 @@ public class Lexer {
             else if(src.get(0).equals("¬") || src.get(0).equals("~")) tokens.add(new Token(src.remove(0), TokenType.AndOperator));
             else if(src.get(0).equals(";")) tokens.add(new Token(src.remove(0), TokenType.Semicolon));
             else if(src.get(0).equals(",")) tokens.add(new Token(src.remove(0), TokenType.Comma));
-            else if(src.get(0).equals("∈")) tokens.add(new Token(src.remove(0), TokenType.InRange));
+            else if(src.get(0).equals("\"")) {
+                tokens.add(new Token(src.remove(0), TokenType.Quote));
+                if(!src.isEmpty() && !src.get(0).equals("\"")) {
+                    String value = "";
+                    while(!src.isEmpty() && !src.get(0).equals("\"")) {
+                        value += src.remove(0);
+                    }
+                    tokens.add(new Token(value, TokenType.Text));
+                }
+
+                if(src.get(0).equals("\"")) tokens.add(new Token(src.remove(0), TokenType.Quote));
+                else throw new StringTerminationException('\"');
+
+            } else if(src.get(0).equals("'")) {
+                tokens.add(new Token(src.remove(0), TokenType.Apostrophe));
+                if(!src.isEmpty() && !src.get(0).equals("''")) {
+                    String value = "";
+                    while(!src.isEmpty() && !src.get(0).equals("'")) {
+                        value += src.remove(0);
+                    }
+                    tokens.add(new Token(value, TokenType.Character));
+                }
+
+                if(src.get(0).equals("'")) tokens.add(new Token(src.remove(0), TokenType.Apostrophe));
+                else throw new StringTerminationException('\'');
+
+            } else if(src.get(0).equals("∈")) tokens.add(new Token(src.remove(0), TokenType.InRange));
+            else if(src.get(0).equals("∞")) tokens.add(new Token(src.remove(0), TokenType.Identifier));
             else if(src.get(0).equals("\t")) {
                 tokens.add(new Token("\\t", TokenType.Tabulator));
                 src.remove(0);

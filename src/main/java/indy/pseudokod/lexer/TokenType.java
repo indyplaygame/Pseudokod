@@ -2,12 +2,16 @@ package indy.pseudokod.lexer;
 
 public enum TokenType {
     Number,
+    Character,
+    Text,
     Range,
     Identifier,
     Assignment,
     InRange,
     OpenParenthesis,
     CloseParenthesis,
+    OpenBracket,
+    CloseBracket,
     BinaryOperator,
     DivOperator,
     ModulusOperator,
@@ -27,6 +31,8 @@ public enum TokenType {
     Colon,
     Semicolon,
     Comma,
+    Quote,
+    Apostrophe,
     Null,
     EndOfFile
 }

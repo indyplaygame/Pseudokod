@@ -8,7 +8,7 @@ public class CharValue extends RuntimeValue{
         this.value = value;
     }
 
-    public double value() {
+    public char value() {
         return this.value;
     }
 }

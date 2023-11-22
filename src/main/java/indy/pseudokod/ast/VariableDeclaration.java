@@ -3,9 +3,9 @@ package indy.pseudokod.ast;
 import indy.pseudokod.runtime.values.ValueType;
 
 public class VariableDeclaration extends Statement {
-    private boolean constant;
-    private String symbol;
-    private ValueType type;
+    private final boolean constant;
+    private final String symbol;
+    private final ValueType type;
     private Expression value;
 
     public VariableDeclaration(ValueType type, String symbol, boolean constant, Expression value) {

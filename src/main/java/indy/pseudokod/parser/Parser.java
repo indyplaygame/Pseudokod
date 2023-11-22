@@ -1,12 +1,11 @@
 package indy.pseudokod.parser;
 
 import indy.pseudokod.ast.*;
-import indy.pseudokod.exceptions.IllegalDataTypeException;
-import indy.pseudokod.exceptions.MissingTokenException;
-import indy.pseudokod.exceptions.UnexpectedTokenException;
+import indy.pseudokod.exceptions.*;
 import indy.pseudokod.lexer.Token;
 import indy.pseudokod.lexer.TokenType;
 import indy.pseudokod.runtime.values.ValueType;
+import indy.pseudokod.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,23 +16,23 @@ import static indy.pseudokod.lexer.Lexer.tokenize;
 
 public class Parser {
     private List<Token> tokens = new ArrayList<>();
-    static final Map<String, ValueType> types = new HashMap<>();
+    static final Map<String, ValueType> var_types = new HashMap<>();
 
     static {
-        types.put("number", ValueType.Number);
-        types.put("liczba", ValueType.Number);
-        types.put("char", ValueType.Char);
-        types.put("znak", ValueType.Char);
-        types.put("string", ValueType.String);
-        types.put("tekst", ValueType.String);
-        types.put("boolean", ValueType.Boolean);
-        types.put("logiczny", ValueType.Boolean);
-        types.put("list", ValueType.List);
-        types.put("tablica", ValueType.List);
-        types.put("set", ValueType.Set);
-        types.put("zbior", ValueType.Set);;
-        types.put("range", ValueType.Range);
-        types.put("przedzial", ValueType.Range);
+        var_types.put("number", ValueType.Number);
+        var_types.put("liczba", ValueType.Number);
+        var_types.put("char", ValueType.Char);
+        var_types.put("znak", ValueType.Char);
+        var_types.put("string", ValueType.String);
+        var_types.put("tekst", ValueType.String);
+        var_types.put("boolean", ValueType.Boolean);
+        var_types.put("logiczny", ValueType.Boolean);
+        var_types.put("list", ValueType.List);
+        var_types.put("tablica", ValueType.List);
+        var_types.put("set", ValueType.Set);
+        var_types.put("zbior", ValueType.Set);;
+        var_types.put("range", ValueType.Range);
+        var_types.put("przedzial", ValueType.Range);
     }
 
     private boolean isNotEOF() {
@@ -100,13 +99,11 @@ public class Parser {
 
             if(!tokens.isEmpty() && this.at().type() == TokenType.Assignment) {
                 this.eat();
-                if(types.get(data_type.value()) == ValueType.Number || types.get(data_type.value()) == ValueType.Boolean) {
                     value = this.parseExpression();
 
-                    statements.add(new VariableDeclaration(types.get(data_type.value()), identifier.value(), false, value));
-                }
+                    statements.add(new VariableDeclaration(var_types.get(data_type.value()), identifier.value(), false, value));
             } else {
-                statements.add(new VariableDeclaration(types.get(data_type.value()), identifier.value(), false));
+                statements.add(new VariableDeclaration(var_types.get(data_type.value()), identifier.value(), false));
             }
         } while(this.at().type() == TokenType.Comma);
         this.expect(TokenType.Semicolon);
@@ -114,12 +111,15 @@ public class Parser {
         return new DataDeclaration(statements);
     }
 
-    private Expression parseAssignmentExpression() throws Throwable {
+    private Expression parseAssignmentExpression(boolean expect_semicolon) throws Throwable {
         Expression left = parseAdditiveExpression();
 
         if(this.at().type() == TokenType.Assignment) {
             this.eat();
-            final Expression value = this.parseAssignmentExpression();
+
+            final Expression value = this.parseAssignmentExpression(false);
+            if(expect_semicolon) this.expect(TokenType.Semicolon);
+
             return new AssignmentExpression(left, value);
         }
 
@@ -127,7 +127,7 @@ public class Parser {
     }
 
     private Expression parseExpression() throws Throwable {
-        return parseAssignmentExpression();
+        return parseAssignmentExpression(true);
     }
 
     private Expression parseAdditiveExpression() throws Throwable {
@@ -143,15 +143,33 @@ public class Parser {
     }
 
     private Expression parseMultiplicativeExpression() throws Throwable {
-        Expression left = parsePrimaryExpression();
+        Expression left = parseMemberExpression();
 
         while(this.at().value().equals("*") || this.at().value().equals("/") || this.at().value().equals("mod") || this.at().value().equals("div")) {
             String operator = this.eat().value();
-            Expression right = parsePrimaryExpression();
+            Expression right = parseMemberExpression();
             left = new BinaryExpression(left, right, operator);
         }
 
         return left;
+    }
+
+    private Expression parseMemberExpression() throws Throwable {
+        Expression array = parsePrimaryExpression();
+
+        while(this.at().type().equals(TokenType.OpenBracket)) {
+            this.eat();
+
+            final Expression index = parseExpression();
+
+            if(!(index.kind().equals(NodeType.NumericLiteral) || index.kind().equals(NodeType.Identifier)))
+                throw new IllegalIndexTypeException(index.kind());
+
+            this.expect(TokenType.CloseBracket);
+
+            array = new IndexExpression(array, index);
+        }
+        return array;
     }
 
     private Expression parsePrimaryExpression() throws Throwable {
@@ -162,6 +180,31 @@ public class Parser {
                 return new Identifier(this.eat().value());
             case Number:
                 return new NumericLiteral(this.eat().value());
+            case Quote:
+                this.eat();
+                final String text = this.expect(TokenType.Text).value();
+                this.expect(TokenType.Quote);
+
+                return new StringLiteral(text);
+            case Apostrophe:
+                this.eat();
+                final String character = this.expect(TokenType.Character).value();
+                this.expect(TokenType.Apostrophe);
+
+                if(character.length() > 1) throw new CharactersAmountException(character.length());
+
+                return new CharacterLiteral(character.charAt(0));
+            case OpenBracket:
+                this.eat();
+
+                ArrayList<Expression> values = new ArrayList<>();
+                while(isNotEOF() && !this.at().type().equals(TokenType.CloseBracket)) {
+                    values.add(parseExpression());
+                    if(this.at().type().equals(TokenType.Comma)) this.eat();
+                }
+
+                this.expect(TokenType.CloseBracket);
+                return new ArrayLiteral(values);
             case OpenParenthesis:
                 this.eat();
                 final Expression value = parseExpression();
