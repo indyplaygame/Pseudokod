@@ -8,5 +8,6 @@ public enum ValueType {
     Char,
     List,
     Set,
-    Range
+    Range,
+    NativeFunction
 }

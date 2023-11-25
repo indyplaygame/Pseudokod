@@ -3,7 +3,7 @@ package indy.pseudokod.runtime.values;
 import java.util.List;
 
 public class ListValue extends RuntimeValue{
-    private List<RuntimeValue> value;
+    private final List<RuntimeValue> value;
 
     public ListValue(List<RuntimeValue> value) {
         super(ValueType.List);

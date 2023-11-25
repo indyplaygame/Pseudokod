@@ -1,16 +1,16 @@
 package indy.pseudokod.runtime.values;
 
-import java.util.Set;
+import java.util.List;
 
 public class SetValue extends RuntimeValue{
-    private Set<RuntimeValue> value;
+    private final List<RuntimeValue> value;
 
-    public SetValue(Set<RuntimeValue> value) {
-        super(ValueType.String);
+    public SetValue(List<RuntimeValue> value) {
+        super(ValueType.Set);
         this.value = value;
     }
 
-    public Set<RuntimeValue> value() {
+    public List<RuntimeValue> value() {
         return this.value;
     }
 }

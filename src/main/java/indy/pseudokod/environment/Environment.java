@@ -6,7 +6,6 @@ import indy.pseudokod.exceptions.VariableDeclaredException;
 import indy.pseudokod.exceptions.VariableNotDeclaredException;
 import indy.pseudokod.runtime.values.RuntimeValue;
 import indy.pseudokod.runtime.values.ValueType;
-import indy.pseudokod.utils.Utils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -51,6 +50,11 @@ public class Environment {
     public RuntimeValue getVariable(String name) throws Throwable {
         final Environment env = this.resolveVariable(name);
         return env.variables.get(name).value();
+    }
+
+    public ValueType getVariableType(String name) throws Throwable {
+        final Environment env = this.resolveVariable(name);
+        return env.variables.get(name).type();
     }
 
     public Environment resolveVariable(String name) throws Throwable {

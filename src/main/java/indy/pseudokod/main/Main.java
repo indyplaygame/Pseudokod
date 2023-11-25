@@ -2,18 +2,16 @@ package indy.pseudokod.main;
 
 import indy.pseudokod.ast.Program;
 import indy.pseudokod.environment.Environment;
+import indy.pseudokod.exceptions.InvalidConversionDataTypeException;
+import indy.pseudokod.functions.Functions;
 import indy.pseudokod.lexer.Lexer;
 import indy.pseudokod.parser.Parser;
 import indy.pseudokod.runtime.Interpreter;
-import indy.pseudokod.runtime.values.BooleanValue;
-import indy.pseudokod.runtime.values.NullValue;
-import indy.pseudokod.runtime.values.NumberValue;
-import indy.pseudokod.runtime.values.ValueType;
+import indy.pseudokod.runtime.values.*;
 import indy.pseudokod.utils.Utils;
 
 import java.io.*;
 import java.util.Scanner;
-
 
 public class Main {
     static final Parser parser = new Parser();
@@ -23,30 +21,36 @@ public class Main {
         env = new Environment();
         env.declareVariable("true", ValueType.Boolean, true, new BooleanValue(true));
         env.declareVariable("false", ValueType.Boolean, true, new BooleanValue(false));
+        env.declareVariable("prawda", ValueType.Boolean, true, new BooleanValue(true));
+        env.declareVariable("falsz", ValueType.Boolean, true, new BooleanValue(false));
         env.declareVariable("null", ValueType.NULL, true, new NullValue());
         env.declareVariable("infinity", ValueType.Number, true, new NumberValue(Double.MAX_VALUE));
         env.declareVariable("nieskonczonosc", ValueType.Number, true, new NumberValue(Double.MAX_VALUE));
         env.declareVariable("∞", ValueType.Number, true, new NumberValue(Double.MAX_VALUE));
         env.declareVariable("pi", ValueType.Number, true, new NumberValue(Math.PI));
         env.declareVariable("π", ValueType.Number, true, new NumberValue(Math.PI));
+
+        env.declareVariable("date", ValueType.NativeFunction, true, new NativeFunction(Functions::date));
+        env.declareVariable("time", ValueType.NativeFunction, true, new NativeFunction(Functions::time));
+        env.declareVariable("czas", ValueType.NativeFunction, true, new NativeFunction(Functions::time));
     }
 
     public static String readFile(String path) {
         File file = new File(path);
-        String code = "";
+        StringBuilder code = new StringBuilder();
         String line;
 
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             line = reader.readLine();
             do {
-                code += line;
-                if((line = reader.readLine()) != null) code += "\n";
+                code.append(line);
+                if((line = reader.readLine()) != null) code.append("\n");
             } while (line != null);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        return code;
+        return code.toString();
     }
 
     public static void repl() throws Throwable {
@@ -75,7 +79,8 @@ public class Main {
 
 //        System.out.println(Utils.stringifyTokens(Lexer.tokenize(code)));
 //        System.out.println(Utils.stringifyProgram(program));
-        System.out.println(Utils.stringifyRuntimeValue(Interpreter.evaluate(program, env)));
+//        System.out.println(Utils.stringifyRuntimeValue(Interpreter.evaluate(program, env)));
+        Interpreter.evaluate(program, env);
     }
 
     public static void main(String[] args) throws Throwable {

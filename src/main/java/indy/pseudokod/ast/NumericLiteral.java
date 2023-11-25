@@ -5,7 +5,7 @@ public class NumericLiteral extends Expression {
 
     public NumericLiteral(String value) {
         super(NodeType.NumericLiteral);
-        this.value = Long.parseLong(value);
+        this.value = Double.parseDouble(value);
     }
 
     public double value() {

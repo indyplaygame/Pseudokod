@@ -1,6 +1,5 @@
 package indy.pseudokod.exceptions;
 
-import indy.pseudokod.ast.Expression;
 import indy.pseudokod.ast.NodeType;
 import indy.pseudokod.ast.Statement;
 

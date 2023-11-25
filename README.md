@@ -24,11 +24,6 @@ dane:
 - `range` (Alternatively: `przedzial`).
 
 **Available ranges (optional, only for numbers):**
-- `N` - Natural numbers (Positive integers including zero).
-- `N+` - Positive natural numbers (Positive integers excluding zero).
-- `Z` - Integers.
-- `Z+` - Positive integers.
-- `Z-` - Negative integers.
 - `Q` - Rational numbers.
 - `(a, b)` - open interval (All numbers between `a` and `b` excluding `a` and `b`).
 - `(a, b]` - left-open interval (All numbers between `a` and `b` excluding `a` and including `b`).
@@ -36,6 +31,11 @@ dane:
 - `[a, b]` - closed interval (All numbers between `a` and `b` including `a` and `b`).
 
 **Available sets (optional, only for numbers):**
+- `N` - Natural numbers (Positive integers including zero).
+- `N+` - Positive natural numbers (Positive integers excluding zero).
+- `Z` - Integers.
+- `Z+` - Positive integers.
+- `Z-` - Negative integers.
 - `{0, 1, 2}` - set of numbers.
 - `{0, 1, ..., n}` - set of numbers.
 
@@ -82,19 +82,19 @@ variable_name := value;
 ### 6. Outputting data to the user
 **Syntax:**
 ```
-print "text";
-print variable_name;
+print("text");
+print(variable_name);
 ```
 
-**Alternatives to the 'print' statement:** `write`, `input`, `wypisz`, `wprowadz`.
+**Alternatives to the 'print' statement:** `write`, `wypisz`.
 
 ### 7. Getting data from the user.
 **Syntax:**
 ```
-get variable_name;
+get("variable_name");
 ```
 
-**Alternatives to the 'get' statement:** `load`, `wczytaj`.
+**Alternatives to the 'get' statement:** `load`, `wczytaj`, `wprowadz`, `input`.
 
 ### 8. If statement
 **Syntax:**
@@ -124,7 +124,7 @@ while condition;
 ### 10. For loop
 **Syntax:**
 ```
-for control_variable = 0, 1, 2, ..., n
+for control_variable = 0, 1, ..., n
   instructions
   ...
 ```
@@ -151,7 +151,13 @@ function_name(arg, arg1);
 **Alternative to the 'data' keyword:** `dane`.<br>
 **Alternative to the 'results' keyword:** `wyniki`.
 
-### 12. Exceptions
+### 12. Built-in functions
+
+**List of built-in functions:**
+ - `date()` - Returns current date as string in format 'DD-MM-YYYY'.
+ - `time()` - Returns current time as string in format 'HH:MM:SS'. (Alternatively: `czas`)
+
+### 13. Exceptions
 **Possible exceptions:**
 ```
 UnrecognizedCharacterException: Character 'character' is unrecognizable and cannot be converted to Token.
@@ -169,11 +175,15 @@ StringTerminationException: Unterminated string found, expected the 'character' 
 CharactersAmountException: Expected single character (found 'amount' of them).
 IllegalIndexTypeException: Identifier or NumericLiteral expected as list index, received 'type'.
 InvalidConversionDataTypeException: 'Type' cannot be converted to 'type'.
+IndexOutOfRangeException: Index index out of range for length length.
+InvalidSetSyntaxException: Invalid set syntax, please check the documentation for valid set syntax.
+InvalidCallableException: type is not callable data type.
+ArgumentsAmountException: Expected amount arguments, but received amount.
 IllegalConditionException: 'true' condition in while loop is not allowed.
 RecursionError: function cannot call itself.
 ```
 
-### 13. Comments
+### 14. Comments
 **Syntax:**
 ```
 // This is a one line comment
@@ -182,7 +192,7 @@ This is a multi line comment
 */
 ```
 
-### 14. Ending program
+### 15. Ending program
 **Syntax:**
 ```
 who understands?;

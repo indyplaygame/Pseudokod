@@ -41,14 +41,23 @@ public class Utils {
             case NumericLiteral:
                 result += stringifyNumber((NumericLiteral) statement);
                 break;
+            case CharacterLiteral:
+                result += stringifyCharacter((CharacterLiteral) statement);
+                break;
             case StringLiteral:
                 result += stringifyString((StringLiteral) statement);
                 break;
             case ArrayLiteral:
                 result += stringifyArray((ArrayLiteral) statement);
                 break;
+            case SetLiteral:
+                result += stringifySet((SetLiteral) statement);
+                break;
             case Identifier:
                 result += stringifyIdentifier((Identifier) statement);
+                break;
+            case ContinueStatement:
+                result += stringifyContinueStatement((ContinueStatement) statement);
                 break;
             case BinaryExpression:
                 result += "{\n" + stringifyBinaryExpression((BinaryExpression) statement) + "}";
@@ -61,6 +70,12 @@ public class Utils {
                 break;
             case VariableDeclaration:
                 result += "\t{" + stringifyVariableDeclaration((VariableDeclaration) statement) + "}";
+                break;
+            case AssignmentExpression:
+                result += "{" + stringifyAssignmentExpression((AssignmentExpression) statement) + "}";
+                break;
+            case CallExpression:
+                result += stringifyCallExpression((CallExpression) statement);
                 break;
             default:
                 throw new UnrecognizedStatementException(statement);
@@ -77,6 +92,10 @@ public class Utils {
         return "{kind: " + string.kind() + ", value: \"" + string.value() + "\"},\n";
     }
 
+    public static String stringifyCharacter(CharacterLiteral character) {
+        return "{kind: " + character.kind() + ", value: \"" + character.value() + "\"},\n";
+    }
+
     public static String stringifyArray(ArrayLiteral array) throws Throwable {
         String result = "kind: " + array.kind() + ", values: [\n";
 
@@ -87,8 +106,33 @@ public class Utils {
         return result;
     }
 
+    public static String stringifySet(SetLiteral set) throws Throwable {
+        String result = "kind: " + set.kind() + ", values: [\n";
+
+        for(Expression expr : set.values()) {
+            result += "\t\t" + stringifyStatement(expr);
+        }
+
+        return result;
+    }
+
+    public static String stringifyContinueStatement(ContinueStatement statement) throws Throwable {
+        return "{kind: " + statement.kind() + "},\n";
+    }
+
     public static String stringifyIndexExpression(IndexExpression expression) throws Throwable {
         return "{kind: " + expression.kind() + ", array: \"" + stringifyStatement(expression.array()) + "\", index: \"" + stringifyStatement(expression.index()) + "\"}";
+    }
+
+    public static String stringifyCallExpression(CallExpression expression) throws Throwable {
+        String result = "{kind: " + expression.kind() + ", expression: " + stringifyStatement(expression.expression()) + ", args: [\n";
+
+        for(Expression arg : expression.args()) {
+            result += "{" + stringifyStatement(arg) + "}\n";
+        }
+
+        result += "]}";
+        return result;
     }
 
     public static String stringifyIdentifier(Identifier identifier) {
@@ -96,12 +140,10 @@ public class Utils {
     }
 
     public static String stringifyBinaryExpression(BinaryExpression expression) throws Throwable {
-        String result = "\tkind: \"" + expression.kind() + "\",\n" +
+        return "\tkind: \"" + expression.kind() + "\",\n" +
             "\tleft: " + stringifyStatement(expression.left()) +
             "\tright: " + stringifyStatement(expression.right()) +
             "\toperator: \"" + expression.operator() + "\"";
-
-        return result;
     }
 
     public static String stringifyDataDeclaration(DataDeclaration expression) throws Throwable {
@@ -128,6 +170,10 @@ public class Utils {
         return result;
     }
 
+    public static String stringifyAssignmentExpression(AssignmentExpression expression) throws Throwable {
+        return "kind: \"" + expression.kind() + "\", expression: " + stringifyStatement(expression.expression()) + "\", value: " + stringifyStatement(expression.value());
+    }
+
     public static String stringifyRuntimeValue(RuntimeValue value) {
         if(value.type() == ValueType.Number) return "{type: " + value.type() + ", value: \"" + ((NumberValue) value).value() + "\"}";
         else if(value.type() == ValueType.Char) return "{type: " + value.type() + ", value: \"" + ((CharValue) value).value() + "\"}";
@@ -137,6 +183,14 @@ public class Utils {
             String result = "{type: " + value.type() + ", values: [\n";
 
             for(RuntimeValue val : ((ListValue) value).value()) {
+                result += "\t" + stringifyRuntimeValue(val) + "\n";
+            }
+
+            return result + "]}";
+        } else if(value.type() == ValueType.Set) {
+            String result = "{type: " + value.type() + ", values: [\n";
+
+            for(RuntimeValue val : ((SetValue) value).value()) {
                 result += "\t" + stringifyRuntimeValue(val) + "\n";
             }
 

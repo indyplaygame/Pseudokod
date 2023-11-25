@@ -5,12 +5,8 @@ import indy.pseudokod.exceptions.*;
 import indy.pseudokod.lexer.Token;
 import indy.pseudokod.lexer.TokenType;
 import indy.pseudokod.runtime.values.ValueType;
-import indy.pseudokod.utils.Utils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static indy.pseudokod.lexer.Lexer.tokenize;
 
@@ -30,7 +26,7 @@ public class Parser {
         var_types.put("list", ValueType.List);
         var_types.put("tablica", ValueType.List);
         var_types.put("set", ValueType.Set);
-        var_types.put("zbior", ValueType.Set);;
+        var_types.put("zbior", ValueType.Set);
         var_types.put("range", ValueType.Range);
         var_types.put("przedzial", ValueType.Range);
     }
@@ -68,6 +64,19 @@ public class Parser {
         switch(type) {
             case DataToken:
                 return this.parseDataDeclarationStatement();
+            case PrintFunction:
+                this.eat();
+                if(this.at().type().equals(TokenType.Semicolon)) throw new UnexpectedTokenException(this.at());
+
+                List<Expression> args = new ArrayList<>();
+                args.add(parseExpression());
+
+                while(this.isNotEOF() && this.at().type().equals(TokenType.Comma)) {
+                    this.expect(TokenType.Comma);
+                    args.add(parseExpression());
+                }
+
+                return new PrintFunction(args);
             default:
                 return this.parseExpression();
         }
@@ -106,7 +115,6 @@ public class Parser {
                 statements.add(new VariableDeclaration(var_types.get(data_type.value()), identifier.value(), false));
             }
         } while(this.at().type() == TokenType.Comma);
-        this.expect(TokenType.Semicolon);
 
         return new DataDeclaration(statements);
     }
@@ -118,7 +126,6 @@ public class Parser {
             this.eat();
 
             final Expression value = this.parseAssignmentExpression(false);
-            if(expect_semicolon) this.expect(TokenType.Semicolon);
 
             return new AssignmentExpression(left, value);
         }
@@ -143,18 +150,28 @@ public class Parser {
     }
 
     private Expression parseMultiplicativeExpression() throws Throwable {
-        Expression left = parseMemberExpression();
+        Expression left = parseCallIndexExpression();
 
         while(this.at().value().equals("*") || this.at().value().equals("/") || this.at().value().equals("mod") || this.at().value().equals("div")) {
             String operator = this.eat().value();
-            Expression right = parseMemberExpression();
+            Expression right = parseCallIndexExpression();
             left = new BinaryExpression(left, right, operator);
         }
 
         return left;
     }
 
-    private Expression parseMemberExpression() throws Throwable {
+    private Expression parseCallIndexExpression() throws Throwable {
+        Expression expression = parseIndexExpression();
+
+        if(this.at().type().equals(TokenType.OpenParenthesis)) {
+            return parseCallExpression(expression);
+        }
+
+        return expression;
+    }
+
+    private Expression parseIndexExpression() throws Throwable {
         Expression array = parsePrimaryExpression();
 
         while(this.at().type().equals(TokenType.OpenBracket)) {
@@ -170,6 +187,31 @@ public class Parser {
             array = new IndexExpression(array, index);
         }
         return array;
+    }
+
+    private Expression parseCallExpression(Expression expression) throws Throwable {
+        final Expression call = new CallExpression(expression, parseArguments());
+        return call;
+    }
+
+    private List<Expression> parseArguments() throws Throwable {
+        this.expect(TokenType.OpenParenthesis);
+        final List<Expression> args = this.at().type().equals(TokenType.CloseParenthesis) ? new ArrayList<>() : this.parseArgumentsList();
+        this.expect(TokenType.CloseParenthesis);
+
+        return args;
+    }
+
+    private List<Expression> parseArgumentsList() throws Throwable {
+        final List<Expression> args = new ArrayList<>();
+        args.add(parseExpression());
+
+        while(this.isNotEOF() && this.at().type().equals(TokenType.Comma)) {
+            this.eat();
+            args.add(parseExpression());
+        }
+
+        return args;
     }
 
     private Expression parsePrimaryExpression() throws Throwable {
@@ -194,17 +236,41 @@ public class Parser {
                 if(character.length() > 1) throw new CharactersAmountException(character.length());
 
                 return new CharacterLiteral(character.charAt(0));
-            case OpenBracket:
+            case OpenBracket: {
                 this.eat();
 
                 ArrayList<Expression> values = new ArrayList<>();
+                if(!this.at().type().equals(TokenType.CloseBracket)) values.add(parseExpression());
+
                 while(isNotEOF() && !this.at().type().equals(TokenType.CloseBracket)) {
+                    this.expect(TokenType.Comma);
                     values.add(parseExpression());
-                    if(this.at().type().equals(TokenType.Comma)) this.eat();
                 }
 
                 this.expect(TokenType.CloseBracket);
-                return new ArrayLiteral(values);
+                return new ArrayLiteral(values); }
+            case OpenBrace:
+                this.eat();
+
+                ArrayList<Expression> values = new ArrayList<>();
+                if(!this.at().type().equals(TokenType.CloseBrace)) values.add(parseExpression());
+
+                while(isNotEOF() && !this.at().type().equals(TokenType.CloseBrace)) {
+                    this.expect(TokenType.Comma);
+
+                    if(isNotEOF() && this.at().type().equals(TokenType.Dot)) {
+                        this.eat();
+                        this.expect(TokenType.Dot);
+                        this.expect(TokenType.Dot);
+
+                        values.add(new ContinueStatement());
+                    } else {
+                        values.add(parseExpression());
+                    }
+                }
+
+                this.expect(TokenType.CloseBrace);
+                return new SetLiteral(values);
             case OpenParenthesis:
                 this.eat();
                 final Expression value = parseExpression();
@@ -215,6 +281,10 @@ public class Parser {
                 String operator = this.eat().value();
 
                 return new BinaryExpression(new NumericLiteral("0"), new NumericLiteral(this.eat().value()), operator);
+            case GetFunction:
+                this.eat();
+                String identifier = this.expect(TokenType.Identifier).value();
+                return new GetFunction(identifier);
             default:
                 throw new UnexpectedTokenException(this.at());
         }
@@ -226,6 +296,7 @@ public class Parser {
 
         while(isNotEOF()) {
             program.body().add(this.parseStatement());
+            this.expect(TokenType.Semicolon);
         }
 
         return program;

@@ -2,15 +2,24 @@ package indy.pseudokod.runtime;
 
 import indy.pseudokod.ast.*;
 import indy.pseudokod.environment.Environment;
-import indy.pseudokod.exceptions.ASTNodeNotSetupException;
-import indy.pseudokod.exceptions.DivisionByZeroException;
-import indy.pseudokod.exceptions.IncompatibleDataTypeException;
-import indy.pseudokod.exceptions.MissingIdentifierException;
+import indy.pseudokod.exceptions.*;
 import indy.pseudokod.runtime.values.*;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
 
 public class Interpreter {
+
+    private static void updateList(List<RuntimeValue> list, RuntimeValue value, List<Integer> indexes, int index) throws Throwable {
+        if(indexes.get(index) < 0 || indexes.get(index) > (list.size() - 1)) throw new IndexOutOfRangeException(indexes.get(index) + 1, list.size());
+        if(index == 0) list.set(indexes.get(index), value);
+        else {
+            List<RuntimeValue> sublist = ((ListValue) list.get(indexes.get(index))).value();
+            updateList(sublist, value, indexes, index - 1);
+            list.set(indexes.get(index), new ListValue(sublist));
+        }
+    }
 
     static RuntimeValue evaluateProgram(Program program, Environment env) throws Throwable {
         RuntimeValue value = new NullValue();
@@ -42,21 +51,71 @@ public class Interpreter {
         final ListValue array = (ListValue) left;
         final RuntimeValue index = evaluate(node.index(), env);
 
+        if(((int) ((NumberValue) index).value()) < 1 || ((int) ((NumberValue) index).value()) > array.value().size())
+            throw new IndexOutOfRangeException((int) ((NumberValue) index).value(), array.value().size());
+
         return array.value().get(((int) ((NumberValue) index).value()) - 1);
+    }
+
+    static RuntimeValue evaluateAssignment(AssignmentExpression node, Environment env) throws Throwable {
+        if(!(node.expression().kind() == NodeType.Identifier || node.expression().kind() == NodeType.IndexExpression))
+            throw new MissingIdentifierException(NodeType.AssignmentExpression, node.expression());
+
+        if(node.expression().kind().equals(NodeType.Identifier)) return env.assignVariable(((Identifier) node.expression()).symbol(), evaluate(node.value(), env));
+        else {
+            Expression expression = node.expression();
+            List<Integer> indexes = new ArrayList<>();
+            while(expression.kind().equals(NodeType.IndexExpression)) {
+                indexes.add((int) ((NumberValue) evaluate(((IndexExpression) expression).index(), env)).value() - 1);
+                expression = ((IndexExpression) expression).array();
+            }
+            String identifier = ((Identifier) expression).symbol();
+
+            List<RuntimeValue> value = ((ListValue) env.getVariable(identifier)).value();
+            updateList(value, evaluate(node.value(), env), indexes, indexes.size() - 1);
+
+            return env.assignVariable(identifier, new ListValue(value));
+        }
+    }
+
+    static RuntimeValue evaluateCallExpression(CallExpression node, Environment env) throws Throwable {
+        final List<RuntimeValue> args = node.args().stream().map(arg -> {
+            try {
+                return evaluate(arg, env);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+        }).toList();
+        final RuntimeValue function = evaluate(node.expression(), env);
+
+        if(function.type().equals(ValueType.NativeFunction)) return ((NativeFunction) function).call(args, env);
+        else throw new InvalidCallableException(function.type());
     }
 
     static NumberValue evaluateNumericBinaryExpression(NumberValue left, NumberValue right, String operator) throws Throwable {
         double result = 0;
 
-        if(operator.equals("+")) result = left.value() + right.value();
-        else if(operator.equals("-")) result = left.value() - right.value();
-        else if(operator.equals("*")) result = left.value() * right.value();
-        else if(operator.equals("/")) {
-            if(right.value() == 0) throw new DivisionByZeroException();
-            result = left.value() / right.value();
+        switch (operator) {
+            case "+":
+                result = left.value() + right.value();
+                break;
+            case "-":
+                result = left.value() - right.value();
+                break;
+            case "*":
+                result = left.value() * right.value();
+                break;
+            case "/":
+                if (right.value() == 0) throw new DivisionByZeroException();
+                result = left.value() / right.value();
+                break;
+            case "div":
+                result = Math.floor(left.value() / right.value());
+                break;
+            case "mod":
+                result = left.value() % right.value();
+                break;
         }
-        else if(operator.equals("div")) result = Math.floor(left.value() / right.value());
-        else if(operator.equals("mod")) result = left.value() % right.value();
 
         return new NumberValue(result);
     }
@@ -82,12 +141,6 @@ public class Interpreter {
         return new NullValue();
     }
 
-    static RuntimeValue evaluateAssignment(AssignmentExpression node, Environment env) throws Throwable {
-        if(node.expression().kind() != NodeType.Identifier) throw new MissingIdentifierException(NodeType.AssignmentExpression, node.expression());
-
-        return env.assignVariable(((Identifier) node.expression()).symbol(), evaluate(node.value(), env));
-    }
-
     public static RuntimeValue evaluate(Statement node, Environment env) throws Throwable {
         switch(node.kind()) {
             case NumericLiteral:
@@ -96,12 +149,49 @@ public class Interpreter {
                 return new StringValue(((StringLiteral) node).value());
             case CharacterLiteral:
                 return new CharValue(((CharacterLiteral) node).value());
-            case ArrayLiteral:
+            case ArrayLiteral: {
                 ArrayList<RuntimeValue> values = new ArrayList<>();
                 for(Expression expression : ((ArrayLiteral) node).values()) {
                     values.add(evaluate(expression, env));
                 }
-                return new ListValue(values);
+                return new ListValue(values); }
+            case SetLiteral:
+                List<RuntimeValue> values = new ArrayList<>();
+                SetLiteral set = (SetLiteral) node;
+
+                if(set.values().stream().anyMatch(e -> e.kind().equals(NodeType.ContinueStatement))) {
+                    if(set.values().size() < 4) throw new InvalidSetSyntaxException();
+
+                    RuntimeValue first = evaluate(set.values().get(0), env);
+                    RuntimeValue second = evaluate(set.values().get(1), env);
+                    RuntimeValue max = evaluate(set.values().get(3), env);
+
+                    if(!(first.type().equals(ValueType.Number) && second.type().equals(ValueType.Number) &&
+                       set.values().get(2).kind().equals(NodeType.ContinueStatement) && max.type().equals(ValueType.Number))) throw new InvalidSetSyntaxException();
+
+                    int step = (int) (((NumberValue) second).value() - ((NumberValue) first).value());
+
+                    for(int i = ((int) ((NumberValue) first).value()); i <= (int) ((NumberValue) max).value(); i += step) {
+                        values.add(new NumberValue(i));
+                    }
+                    return new SetValue(values);
+                }
+
+                for(Expression expression : set.values()) {
+                    if(expression.kind().equals(NodeType.ContinueStatement)) throw new InvalidSetSyntaxException();
+
+                    RuntimeValue value = evaluate(expression, env);
+
+                    if(values.stream().noneMatch(e -> {
+                        try {
+                            return e.type() == value.type() && StringValue.valueOf(e).value().equals(StringValue.valueOf(value).value());
+                        } catch (InvalidConversionDataTypeException ex) {
+                            ex.printStackTrace();
+                            return false;
+                        }
+                    })) values.add(value);
+                }
+                return new SetValue(values);
             case Identifier:
                 return evaluateIdentifier((Identifier) node, env);
             case BinaryExpression:
@@ -114,6 +204,32 @@ public class Interpreter {
                 return evaluateDataDeclaration((DataDeclaration) node, env);
             case AssignmentExpression:
                 return evaluateAssignment((AssignmentExpression) node, env);
+            case CallExpression:
+                return evaluateCallExpression((CallExpression) node, env);
+            case PrintFunction:
+                StringBuilder output = new StringBuilder();
+                ((PrintFunction) node).args().forEach(arg -> {
+                    try {
+                        output.append(StringValue.valueOf(evaluate(arg, env)).value());
+                    } catch (Throwable e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+
+                System.out.println(output);
+                return new NullValue();
+            case GetFunction:
+                Scanner scanner = new Scanner(System.in);
+
+                String name = ((GetFunction) node).identifier();
+                String value = scanner.nextLine();
+                ValueType type = env.getVariableType(name);
+
+                if(type.equals(ValueType.Number)) return env.assignVariable(name, new NumberValue(Double.parseDouble(value)));
+                else if(type.equals(ValueType.Boolean)) return env.assignVariable(name, new BooleanValue(Boolean.getBoolean(value)));
+                else if(type.equals(ValueType.Char)) return env.assignVariable(name, new CharValue(value.charAt(0)));
+                else if(type.equals(ValueType.String)) return env.assignVariable(name, new StringValue(value));
+                else throw new InvalidConversionDataTypeException(ValueType.String, type);
             default:
                 throw new ASTNodeNotSetupException(node.kind());
         }

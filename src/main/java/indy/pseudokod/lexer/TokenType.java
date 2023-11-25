@@ -12,6 +12,8 @@ public enum TokenType {
     CloseParenthesis,
     OpenBracket,
     CloseBracket,
+    OpenBrace,
+    CloseBrace,
     BinaryOperator,
     DivOperator,
     ModulusOperator,
@@ -31,8 +33,11 @@ public enum TokenType {
     Colon,
     Semicolon,
     Comma,
+    Dot,
     Quote,
     Apostrophe,
+    PrintFunction,
+    GetFunction,
     Null,
     EndOfFile
 }

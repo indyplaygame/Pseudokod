@@ -8,9 +8,14 @@ public enum NodeType {
     StringLiteral,
     BooleanLiteral,
     ArrayLiteral,
+    SetLiteral,
     Program,
     DataDeclaration,
     VariableDeclaration,
     AssignmentExpression,
-    IndexExpression
+    IndexExpression,
+    CallExpression,
+    ContinueStatement,
+    PrintFunction,
+    GetFunction
 }

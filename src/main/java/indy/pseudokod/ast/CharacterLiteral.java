@@ -2,7 +2,7 @@ package indy.pseudokod.ast;
 
 public class CharacterLiteral extends Expression {
 
-    private char value;
+    private final char value;
 
     public CharacterLiteral(char value) {
         super(NodeType.CharacterLiteral);

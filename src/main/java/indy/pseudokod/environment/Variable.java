@@ -7,7 +7,6 @@ public class Variable {
     private final ValueType type;
     private final String name;
     private final boolean constant;
-
     private RuntimeValue value;
 
     public Variable(ValueType type, String name, boolean constant, RuntimeValue value) {
