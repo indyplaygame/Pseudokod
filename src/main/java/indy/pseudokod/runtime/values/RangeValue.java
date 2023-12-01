@@ -14,16 +14,24 @@ public class RangeValue extends RuntimeValue{
         this.right_included = right_included;
     }
 
-    public double lower_bound() {
+    public boolean left_included() {
+        return this.left_included;
+    }
+
+    public boolean right_included() {
+        return this.right_included;
+    }
+
+    public double left_bound() {
         return this.left_bound;
     }
 
-    public double upper_bound() {
+    public double right_bound() {
         return this.right_bound;
     }
 
     public boolean inRange(double number) {
-        return ((this.left_included && this.left_bound <= number) || !this.left_included && this.left_bound < number) &&
-               ((this.right_included && number >= this.right_bound) || !this.right_included && number > this.right_bound);
+        return ((this.left_included && this.left_bound <= number) || (!this.left_included && this.left_bound < number)) &&
+               ((this.right_included && this.right_bound >= number) || (!this.right_included && this.right_bound > number));
     }
 }

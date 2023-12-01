@@ -11,6 +11,9 @@ import indy.pseudokod.runtime.values.*;
 import indy.pseudokod.utils.Utils;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Scanner;
 
 public class Main {
@@ -33,24 +36,16 @@ public class Main {
         env.declareVariable("date", ValueType.NativeFunction, true, new NativeFunction(Functions::date));
         env.declareVariable("time", ValueType.NativeFunction, true, new NativeFunction(Functions::time));
         env.declareVariable("czas", ValueType.NativeFunction, true, new NativeFunction(Functions::time));
+        env.declareVariable("random", ValueType.NativeFunction, true, new NativeFunction(Functions::random));
+        env.declareVariable("losuj", ValueType.NativeFunction, true, new NativeFunction(Functions::random));
+        env.declareVariable("wait", ValueType.NativeFunction, true, new NativeFunction(Functions::wait));
+        env.declareVariable("delay", ValueType.NativeFunction, true, new NativeFunction(Functions::wait));
+        env.declareVariable("czekaj", ValueType.NativeFunction, true, new NativeFunction(Functions::wait));
     }
 
-    public static String readFile(String path) {
-        File file = new File(path);
-        StringBuilder code = new StringBuilder();
-        String line;
-
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            line = reader.readLine();
-            do {
-                code.append(line);
-                if((line = reader.readLine()) != null) code.append("\n");
-            } while (line != null);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return code.toString();
+    public static String readFile(String path) throws IOException {
+        Path filePath = Paths.get(path);
+        return Files.readString(filePath);
     }
 
     public static void repl() throws Throwable {

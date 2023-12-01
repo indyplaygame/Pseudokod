@@ -2,6 +2,8 @@ package indy.pseudokod.ast;
 
 public enum NodeType {
     BinaryExpression,
+    ComparisonExpression,
+    LogicalExpression,
     Identifier,
     NumericLiteral,
     CharacterLiteral,
@@ -9,6 +11,7 @@ public enum NodeType {
     BooleanLiteral,
     ArrayLiteral,
     SetLiteral,
+    RangeLiteral,
     Program,
     DataDeclaration,
     VariableDeclaration,
@@ -17,5 +20,7 @@ public enum NodeType {
     CallExpression,
     ContinueStatement,
     PrintFunction,
-    GetFunction
+    GetFunction,
+    IfStatement,
+    ElseStatement,
 }

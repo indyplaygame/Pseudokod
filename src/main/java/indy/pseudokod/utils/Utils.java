@@ -8,15 +8,18 @@ import indy.pseudokod.runtime.values.*;
 import java.util.List;
 
 public class Utils {
+
+    private static int indent = 1;
+
     public static String stringifyTokens(List<Token> tokens) {
-        String result = "[\n";
+        StringBuilder result = new StringBuilder("[\n");
 
         for(Token token : tokens) {
-            result += "\t" + stringifyToken(token) + ",\n";
+            result.append("\t").append(stringifyToken(token)).append(",\n");
         }
 
-        result += "]";
-        return result;
+        result.append("]");
+        return result.toString();
     }
 
     public static String stringifyToken(Token token) {
@@ -24,72 +27,114 @@ public class Utils {
     }
 
     public static String stringifyProgram(Program program) throws Throwable {
-        String result = "{kind: " + program.kind() + ", body: [";
+        StringBuilder result = new StringBuilder("{kind: " + program.kind() + ", body: [\n");
 
         for(Statement statement : program.body()) {
-            result += stringifyStatement(statement);
+            indent = 1;
+            result.append((stringifyStatement(statement) + ",\n").indent(1));
         }
 
-        result += "]}";
-        return result;
+        result.append("\n]}");
+        return result.toString();
     }
 
     public static String stringifyStatement(Statement statement) throws Throwable {
-        String result = "";
 
         switch(statement.kind()) {
             case NumericLiteral:
-                result += stringifyNumber((NumericLiteral) statement);
-                break;
+                return stringifyNumber((NumericLiteral) statement);
             case CharacterLiteral:
-                result += stringifyCharacter((CharacterLiteral) statement);
-                break;
+                return stringifyCharacter((CharacterLiteral) statement);
             case StringLiteral:
-                result += stringifyString((StringLiteral) statement);
-                break;
+                return stringifyString((StringLiteral) statement);
             case ArrayLiteral:
-                result += stringifyArray((ArrayLiteral) statement);
-                break;
+                return stringifyArray((ArrayLiteral) statement);
             case SetLiteral:
-                result += stringifySet((SetLiteral) statement);
-                break;
+                return stringifySet((SetLiteral) statement);
             case Identifier:
-                result += stringifyIdentifier((Identifier) statement);
-                break;
+                return stringifyIdentifier((Identifier) statement);
             case ContinueStatement:
-                result += stringifyContinueStatement((ContinueStatement) statement);
-                break;
+                return stringifyContinueStatement((ContinueStatement) statement);
             case BinaryExpression:
-                result += "{\n" + stringifyBinaryExpression((BinaryExpression) statement) + "}";
-                break;
+                return "{\n" + stringifyBinaryExpression((BinaryExpression) statement) + "}";
             case IndexExpression:
-                result += stringifyIndexExpression((IndexExpression) statement);
-                break;
+                return stringifyIndexExpression((IndexExpression) statement);
             case DataDeclaration:
-                result += "{" + stringifyDataDeclaration((DataDeclaration) statement) + "}";
-                break;
+                return stringifyDataDeclaration((DataDeclaration) statement);
             case VariableDeclaration:
-                result += "\t{" + stringifyVariableDeclaration((VariableDeclaration) statement) + "}";
-                break;
+                return "{" + stringifyVariableDeclaration((VariableDeclaration) statement) + "}";
             case AssignmentExpression:
-                result += "{" + stringifyAssignmentExpression((AssignmentExpression) statement) + "}";
-                break;
+                return "{" + stringifyAssignmentExpression((AssignmentExpression) statement) + "}";
             case CallExpression:
-                result += stringifyCallExpression((CallExpression) statement);
-                break;
+                return stringifyCallExpression((CallExpression) statement);
+            case PrintFunction:
+                return stringifyPrintFunction((PrintFunction) statement);
+            case GetFunction:
+                return stringifyGetFunction((GetFunction) statement);
+//            case IfStatement:
+//                return stringifyIfStatement((IfStatement) statement);
             default:
                 throw new UnrecognizedStatementException(statement);
         }
-
-        return result;
     }
 
     public static String stringifyNumber(NumericLiteral number) {
         return "{kind: " + number.kind() + ", value: \"" + number.value() + "\"},\n";
     }
 
+    public static String stringifyPrintFunction(PrintFunction function) throws Throwable {
+        StringBuilder result = new StringBuilder("{kind: " + function.kind() + ", args: [\n");
+
+        indent++;
+        for(Expression expression : function.args()) {
+            result.append((stringifyStatement(expression) + ",\n").indent(indent));
+        }
+
+        indent--;
+        return result + "]}".indent(indent);
+    }
+
+    public static String stringifyGetFunction(GetFunction function) throws Throwable {
+        return  "{kind: " + function.kind() + ", identifier: \"" + function.identifier() + "\"}";
+    }
+
+//    public static String stringifyIfStatement(IfStatement statement) throws Throwable {
+//        StringBuilder result = new StringBuilder("{kind: " + statement.kind() + ", body: [\n");
+//
+//        indent++;
+//        for(Statement stmt : statement.body()) {
+//            result.append(stringifyStatement(stmt).indent(indent));
+//        }
+//        indent--;
+//        result.append("], else_body: [\n");
+//        indent++;
+//        for(Statement stmt : statement.else_body()) {
+//            result.append(stringifyElseStatement(stmt).indent(indent));
+//        }
+//        indent--;
+//
+//        return result + "]}";
+//    }
+
+//    public static String stringifyElseStatement(Statement statement) throws Throwable {
+//        StringBuilder result = new StringBuilder(("{kind: " + statement.kind() + ", ").indent(indent));
+//
+//        if(statement instanceof ElseStatement) {
+//            result.append("body: [\n");
+//            indent++;
+//            for(Statement stmt : ((ElseStatement) statement).body()) {
+//                result.append(stringifyStatement(stmt).indent(indent));
+//            }
+//            indent--;
+//        } else if(statement instanceof IfStatement) {
+//            result.append(stringifyIfStatement((IfStatement) statement));
+//        }
+//
+//        return result + "},";
+//    }
+
     public static String stringifyString(StringLiteral string) {
-        return "{kind: " + string.kind() + ", value: \"" + string.value() + "\"},\n";
+        return "{kind: " + string.kind() + ", value: \"" + string.value() + "\"}";
     }
 
     public static String stringifyCharacter(CharacterLiteral character) {
@@ -147,22 +192,24 @@ public class Utils {
     }
 
     public static String stringifyDataDeclaration(DataDeclaration expression) throws Throwable {
-        String result = "kind: \"" + expression.kind() + "\", body: [\n";
+        StringBuilder result = new StringBuilder("{kind: \"" + expression.kind() + "\", body: [\n");
 
+        indent++;
         for(Statement statement : expression.body()) {
-            result += stringifyStatement(statement) + ",\n";
+            result.append((stringifyStatement(statement) + ",\n").indent(indent));
         }
 
-        result += "]";
+        indent--;
+        result.append("]}".indent(indent));
 
-        return result;
+        return result.toString();
     }
 
     public static String stringifyVariableDeclaration(VariableDeclaration expression) throws Throwable {
-        String result = "kind: \"" + expression.kind() + "\", type: " + expression.type() +", symbol: \"" + expression.symbol() + "\", constant: " + expression.constant() + ", value: ";
+        String result = "kind: \"" + expression.kind() + "\", type: " + expression.type() +", symbol: \"" + expression.symbol() + "\", constant: " + expression.constant() + ", range: " + expression.range() + ", value: ";
 
         if(expression.value() != null) {
-            result += "{" + stringifyStatement(expression.value()) + "\n}";
+            result += ("{" + stringifyStatement(expression.value()) + "\n}").indent(indent);
         } else {
             result += "null";
         }

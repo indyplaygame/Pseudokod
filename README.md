@@ -58,7 +58,7 @@ variable_name := value;
 ### 3. Comparison operators
 **Available comparison operators:**
 - Equal (`=`).
-- Inequal (`≠`, `!=`).
+- Unequal (`≠`, `!=`).
 - Less than (`<`).
 - Less or equal (`≤`, `<=`).
 - Greater than (`>`).
@@ -82,8 +82,8 @@ variable_name := value;
 ### 6. Outputting data to the user
 **Syntax:**
 ```
-print("text");
-print(variable_name);
+print "text";
+print variable_name;
 ```
 
 **Alternatives to the 'print' statement:** `write`, `wypisz`.
@@ -91,7 +91,7 @@ print(variable_name);
 ### 7. Getting data from the user.
 **Syntax:**
 ```
-get("variable_name");
+get variable_name;
 ```
 
 **Alternatives to the 'get' statement:** `load`, `wczytaj`, `wprowadz`, `input`.
@@ -102,9 +102,16 @@ get("variable_name");
 if condition
   instructions
   ...
+else if condition
+  instructions
+  ...
+else
+  instructions
+  ...
 ```
 
-**Alternatives to the 'if' statement:** `jezeli`, `jesli`.
+**Alternatives to the 'if' keyword:** `jezeli`, `jesli`.<br>
+**Alternatives to the 'else' keyword:** `przeciwnie`.
 
 ### 9. While loop (Do-while)
 **Syntax:**
@@ -156,6 +163,8 @@ function_name(arg, arg1);
 **List of built-in functions:**
  - `date()` - Returns current date as string in format 'DD-MM-YYYY'.
  - `time()` - Returns current time as string in format 'HH:MM:SS'. (Alternatively: `czas`)
+ - `random()` - Returns random integer between `1` and `2,147,483,647`. (Alternatively: `losuj`)
+ - `wait(int n)` - Waits `n` milliseconds before executing the rest of the code. (Alternatively: `delay`, `czekaj`)
 
 ### 13. Exceptions
 **Possible exceptions:**
@@ -179,8 +188,12 @@ IndexOutOfRangeException: Index index out of range for length length.
 InvalidSetSyntaxException: Invalid set syntax, please check the documentation for valid set syntax.
 InvalidCallableException: type is not callable data type.
 ArgumentsAmountException: Expected amount arguments, but received amount.
+IllegalExpressionStartException: Illegal start of expression, expected 'type'.
+MissingExpressionException: Expected 'type' expression, but received 'received'.
+UnexpectedNodeException: Node type was not expected here.
+NumberOutOfRangeException: Number number is out of range range.
 IllegalConditionException: 'true' condition in while loop is not allowed.
-RecursionError: function cannot call itself.
+RecursionError: Function cannot call itself.
 ```
 
 ### 14. Comments

@@ -7,6 +7,7 @@ import indy.pseudokod.runtime.values.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Scanner;
 
 public class Interpreter {
@@ -38,6 +39,86 @@ public class Interpreter {
         if(left.type() == ValueType.Number && right.type() == ValueType.Number) return evaluateNumericBinaryExpression((NumberValue) left, (NumberValue) right, node.operator());
         else if((left.type() == ValueType.String || right.type() == ValueType.String) && node.operator().equals("+")) return evaluateConcatenationExpression(left, right);
         else return new NullValue();
+    }
+
+    static RuntimeValue evaluateComparisonExpression(ComparisonExpression node, Environment env) throws Throwable {
+        final RuntimeValue lhs = evaluate(node.left(), env);
+        final RuntimeValue rhs = evaluate(node.right(), env);
+
+        if(lhs.type() != rhs.type() && !(lhs.type() == ValueType.NULL || rhs.type() == ValueType.NULL)) throw new IncompatibleDataTypeException(lhs.type(), rhs.type(), 0);
+
+        if(lhs.type() == ValueType.Number && rhs.type() == ValueType.Number) {
+            final NumberValue left = (NumberValue) lhs;
+            final NumberValue right = (NumberValue) rhs;
+
+            switch(node.operator()) {
+                case "=":
+                    return new BooleanValue(left.value() == right.value());
+                case "≠":
+                case "!=":
+                    return new BooleanValue(left.value() != right.value());
+                case "<":
+                    return new BooleanValue(left.value() < right.value());
+                case "≤":
+                case "<=":
+                    return new BooleanValue(left.value() <= right.value());
+                case ">":
+                    return new BooleanValue(left.value() > right.value());
+                case "≥":
+                case ">=":
+                    return new BooleanValue(left.value() >= right.value());
+                default:
+                    return new BooleanValue(false);
+            }
+        } else {
+            final StringValue left = StringValue.valueOf(lhs);
+            final StringValue right = StringValue.valueOf(rhs);
+
+            switch(node.operator()) {
+                case "=":
+                    return new BooleanValue(Objects.equals(left.value(), right.value()));
+                case "≠":
+                case "!=":
+                    return new BooleanValue(!Objects.equals(left.value(), right.value()));
+                default:
+                    return new BooleanValue(false);
+            }
+        }
+    }
+
+    static RuntimeValue evaluateLogicalExpression(LogicalExpression node, Environment env) throws Throwable {
+        RuntimeValue lhs;
+        BooleanValue left = new BooleanValue(false);
+        final RuntimeValue rhs = evaluate(node.right(), env);
+
+        if(node.left() != null) {
+            lhs = evaluate(node.left(), env);
+
+            if(lhs.type() != ValueType.Boolean) throw new IncompatibleDataTypeException(ValueType.Boolean, lhs.type());
+            left = (BooleanValue) lhs;
+        }
+
+        if(rhs.type() != ValueType.Boolean) throw new IncompatibleDataTypeException(ValueType.Boolean, rhs.type());
+
+        final BooleanValue right = (BooleanValue) rhs;
+
+        switch(node.operator()) {
+            case "AND":
+            case "I":
+            case "∧":
+                return new BooleanValue(left.value() && right.value());
+            case "OR":
+            case "LUB":
+            case "∨":
+                return new BooleanValue(left.value() || right.value());
+            case "NOT":
+            case "NIE:":
+            case "~":
+            case "¬":
+                return new BooleanValue(!right.value());
+            default:
+                return new BooleanValue(false);
+        }
     }
 
     static RuntimeValue evaluateIndexExpression(IndexExpression node, Environment env) throws Throwable {
@@ -95,7 +176,7 @@ public class Interpreter {
     static NumberValue evaluateNumericBinaryExpression(NumberValue left, NumberValue right, String operator) throws Throwable {
         double result = 0;
 
-        switch (operator) {
+        switch(operator) {
             case "+":
                 result = left.value() + right.value();
                 break;
@@ -134,11 +215,55 @@ public class Interpreter {
     static RuntimeValue evaluateDataDeclaration(DataDeclaration node, Environment env) throws Throwable {
         for(Statement statement : node.body()) {
             VariableDeclaration variable = (VariableDeclaration) statement;
-            if(variable.value() != null) env.declareVariable(variable.symbol(), variable.type(), false, evaluate(variable.value(), env));
+            RangeValue range = null;
+            RuntimeValue value = evaluate(variable.value(), env);
+
+            if(variable.type() != value.type()) throw new IncompatibleDataTypeException(variable.type(), value.type());
+            if(variable.range() != null) range = evaluateRange(variable.range(), env);
+
+            if(range != null && !range.inRange(((NumberValue) value).value()))
+                throw new NumberOutOfRangeException((NumberValue) value, range);
+
+            if(variable.value() != null) env.declareVariable(variable.symbol(), variable.type(), false, value);
             else env.declareVariable(variable.symbol(), variable.type(), false, new NullValue());
         }
 
         return new NullValue();
+    }
+
+    static RangeValue evaluateRange(RangeLiteral range, Environment env) throws Throwable {
+        return new RangeValue(((NumberValue) evaluate(range.left_bound(), env)).value(), ((NumberValue) evaluate(range.right_bound(), env)).value(), range.left_included(), range.right_included());
+    }
+
+    static RuntimeValue evaluateIfStatement(IfStatement node, Environment env) throws Throwable {
+        if(!(node.expression().kind().equals(NodeType.LogicalExpression) || node.expression().kind().equals(NodeType.ComparisonExpression) || node.expression().kind().equals(NodeType.Identifier)))
+            throw new MissingExpressionException(NodeType.LogicalExpression, node.expression().kind());
+
+        BooleanValue expression = (BooleanValue) evaluate(node.expression(), env);
+        Statement else_statement = node.else_statement();
+
+        if(expression.value()) {
+            Environment scope = new Environment(env);
+            for(Statement stmt : node.body()) {
+                evaluate(stmt, scope);
+            }
+        } else {
+            if(else_statement instanceof IfStatement) {
+                evaluateIfStatement((IfStatement) else_statement, env);
+            } else if(else_statement instanceof ElseStatement) {
+                evaluateElseStatement((ElseStatement) else_statement, env);
+            }
+        }
+        return new NullValue();
+    }
+
+    static void evaluateElseStatement(ElseStatement node, Environment env) throws Throwable {
+        Environment scope = new Environment(env);
+        for(Statement stmt : node.body()) {
+            evaluate(stmt, env);
+        }
+
+        new NullValue();
     }
 
     public static RuntimeValue evaluate(Statement node, Environment env) throws Throwable {
@@ -196,6 +321,10 @@ public class Interpreter {
                 return evaluateIdentifier((Identifier) node, env);
             case BinaryExpression:
                 return evaluateBinaryExpression((BinaryExpression) node, env);
+            case ComparisonExpression:
+                return evaluateComparisonExpression((ComparisonExpression) node, env);
+            case LogicalExpression:
+                return evaluateLogicalExpression((LogicalExpression) node, env);
             case IndexExpression:
                 return evaluateIndexExpression((IndexExpression) node, env);
             case Program:
@@ -210,13 +339,15 @@ public class Interpreter {
                 StringBuilder output = new StringBuilder();
                 ((PrintFunction) node).args().forEach(arg -> {
                     try {
-                        output.append(StringValue.valueOf(evaluate(arg, env)).value());
+                        RuntimeValue value = evaluate(arg, env);
+
+                        output.append(StringValue.valueOf(value).value());
                     } catch (Throwable e) {
                         throw new RuntimeException(e);
                     }
                 });
 
-                System.out.println(output);
+                System.out.print(output);
                 return new NullValue();
             case GetFunction:
                 Scanner scanner = new Scanner(System.in);
@@ -225,11 +356,17 @@ public class Interpreter {
                 String value = scanner.nextLine();
                 ValueType type = env.getVariableType(name);
 
+                if(value == null || value.isBlank() || value.isEmpty()) return env.assignVariable(name, new NullValue());
+
                 if(type.equals(ValueType.Number)) return env.assignVariable(name, new NumberValue(Double.parseDouble(value)));
                 else if(type.equals(ValueType.Boolean)) return env.assignVariable(name, new BooleanValue(Boolean.getBoolean(value)));
                 else if(type.equals(ValueType.Char)) return env.assignVariable(name, new CharValue(value.charAt(0)));
                 else if(type.equals(ValueType.String)) return env.assignVariable(name, new StringValue(value));
                 else throw new InvalidConversionDataTypeException(ValueType.String, type);
+            case IfStatement:
+                return evaluateIfStatement((IfStatement) node, env);
+            case ElseStatement:
+                return new NullValue();
             default:
                 throw new ASTNodeNotSetupException(node.kind());
         }
