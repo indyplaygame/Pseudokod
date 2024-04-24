@@ -14,6 +14,7 @@ public enum NodeType {
     RangeLiteral,
     Program,
     DataDeclaration,
+    FunctionDeclaration,
     VariableDeclaration,
     AssignmentExpression,
     IndexExpression,
@@ -23,4 +24,7 @@ public enum NodeType {
     GetFunction,
     IfStatement,
     ElseStatement,
+    ForStatement,
+    ReturnStatement,
+    ImportStatement
 }

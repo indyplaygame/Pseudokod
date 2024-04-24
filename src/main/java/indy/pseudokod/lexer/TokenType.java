@@ -17,9 +17,13 @@ public enum TokenType {
     BinaryOperator,
     DivOperator,
     ModulusOperator,
+    Equals,
     ComparisonOperator,
     LogicalOperator,
     DataToken,
+    ResultToken,
+    ReturnToken,
+    ImportToken,
     DataType,
     Indent,
     NewLine,
@@ -33,6 +37,8 @@ public enum TokenType {
     GetFunction,
     IfStatement,
     ElseStatement,
+    ForStatement,
+    Function,
     Null,
     EndOfFile
 }

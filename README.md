@@ -140,23 +140,25 @@ for control_variable = 0, 1, ..., n
 **Syntax:**
 ```
 // Declaration
-function_name:
+function function_name:
   data:
     data_type variable_name (∈ range <- value);
     data_type variable1_name (∈ range <- value);
     ...
-  results:
-    variable_name: possible_values | range;
+  result:
+    data_type (variable_name): possible_values | range;
 
   instructions
   ...
+  return result;
 
 // Usage
 function_name(arg, arg1);
 ```
-
+**Alternative to the 'function' keyword:** `funkcja`.<br>
 **Alternative to the 'data' keyword:** `dane`.<br>
-**Alternative to the 'results' keyword:** `wyniki`.
+**Alternative to the 'results' keyword:** `wynik`.<br>
+**Alternative to the 'return' keyword:** `zwroc`.
 
 ### 12. Built-in functions
 
@@ -192,6 +194,7 @@ IllegalExpressionStartException: Illegal start of expression, expected 'type'.
 MissingExpressionException: Expected 'type' expression, but received 'received'.
 UnexpectedNodeException: Node type was not expected here.
 NumberOutOfRangeException: Number number is out of range range.
+IncorrectFunctionDeclarationSyntaxException: Unexpected token found inside function declaration statement.
 IllegalConditionException: 'true' condition in while loop is not allowed.
 RecursionError: Function cannot call itself.
 ```
@@ -212,5 +215,13 @@ who understands?;
 ```
 
 **Alternative to 'who understands?':** `kto rozumie?`.
+
+### 16. Using external libraries
+**Syntax:**
+```
+import file_path;
+```
+
+**Alternative to 'import' keyword:** `zaimportuj`.
 
 ## Tokens

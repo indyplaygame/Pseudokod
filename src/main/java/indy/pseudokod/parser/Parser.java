@@ -55,14 +55,15 @@ public class Parser {
         final Token prev = this.eat();
 
         if(prev != null && prev.type() == type) return prev;
-        else throw new MissingTokenException(type, prev.type());
+        else {
+            assert prev != null;
+            throw new MissingTokenException(type, prev.type());
+        }
     }
 
     private boolean expect(TokenType type, int n) {
-        for(int i = 0; i < n; i++) {
-            if(!this.at().type().equals(type)) return false;
-            this.eat();
-        }
+        for(int i = 0; i < n; i++) if(!this.tokens.get(i).type().equals(type)) return false;
+        for(int i = 0; i < n; i++) this.eat();
         return true;
     }
 
@@ -72,12 +73,13 @@ public class Parser {
     }
 
     private Statement parseStatement() throws Throwable {
-        this.removeSkippable();
         final TokenType type = this.at().type();
 
         switch(type) {
             case DataToken:
                 return this.parseDataDeclarationStatement();
+            case Function:
+                return this.parseFunctionDeclaration();
             case PrintFunction:
                 this.eat();
                 if(this.at().type().equals(TokenType.Semicolon)) throw new UnexpectedTokenException(this.at());
@@ -89,6 +91,8 @@ public class Parser {
                     this.expect(TokenType.Comma);
                     args.add(parseExpression());
                 }
+
+                this.expect(TokenType.Semicolon);
 
                 return new PrintFunction(args);
             case IfStatement: {
@@ -108,7 +112,7 @@ public class Parser {
                 if(this.isNotEOF() && this.at().type().equals(TokenType.ElseStatement)) return new IfStatement(expression, body, parseStatement());
 
                 return new IfStatement(expression, body); }
-            case ElseStatement:
+            case ElseStatement: {
                 this.eat();
 
                 Expression expression = null;
@@ -129,13 +133,64 @@ public class Parser {
                 indent--;
 
                 if(elseif) return new IfStatement(expression, body);
-                else return new ElseStatement(body);
+                else return new ElseStatement(body); }
+            case ForStatement:
+                this.eat();
+
+                Identifier identifier = new Identifier(this.expect(TokenType.Identifier).value());
+                ArrayList<Expression> values = new ArrayList<>();
+                this.expect(TokenType.Equals);
+
+                if(!this.at().type().equals(TokenType.NewLine)) values.add(parseExpression());
+
+                while(this.isNotEOF() && !this.at().type().equals(TokenType.NewLine)) {
+                    this.expect(TokenType.Comma);
+
+                    if(isNotEOF() && this.at().type().equals(TokenType.Dot)) {
+                        this.eat();
+                        this.expect(TokenType.Dot);
+                        this.expect(TokenType.Dot);
+
+                        values.add(new ContinueStatement());
+                    } else {
+                        values.add(parseExpression());
+                    }
+                }
+
+                indent++;
+                List<Statement> body = new ArrayList<>();
+
+                while(this.isNotEOF() && this.at().type().equals(TokenType.NewLine)) {
+                    Token token = this.expect(TokenType.NewLine);
+                    if(this.expect(TokenType.Indent, indent)) body.add(this.parseStatement());
+                    else {
+                        this.tokens.add(0, token);
+                        break;
+                    }
+                }
+                indent--;
+
+                return new ForStatement(identifier.symbol(), values, body);
+            case ReturnToken:
+                this.eat();
+                Expression value = this.parseExpression();
+                this.expect(TokenType.Semicolon);
+
+                return new ReturnStatement(value);
+            case ImportToken:
+                this.eat();
+                this.expect(TokenType.Apostrophe);
+                String path = this.expect(TokenType.Character).value();
+                this.expect(TokenType.Apostrophe);
+                this.expect(TokenType.Semicolon);
+
+                return new ImportStatement(path);
             default:
                 return this.parseExpression();
         }
     }
 
-    private Statement parseDataDeclarationStatement() throws Throwable {
+    private DataDeclaration parseDataDeclarationStatement() throws Throwable {
         this.eat();
         this.expect(TokenType.Colon);
         this.removeSkippable();
@@ -150,7 +205,7 @@ public class Parser {
 
             data_type = this.expect(TokenType.DataType);
             identifier = this.expect(TokenType.Identifier);
-            RangeLiteral range = null;
+            Expression range = null;
             Expression value = null;
 
             if(!tokens.isEmpty() && this.at().type() == TokenType.InRange) {
@@ -158,13 +213,18 @@ public class Parser {
 
                 this.eat();
 
-                boolean left_included = this.expect(TokenType.OpenParenthesis, TokenType.OpenBracket).type().equals(TokenType.OpenBracket);
-                Expression left = parseExpression();
-                this.expect(TokenType.Comma);
-                Expression right = parseExpression();
-                boolean right_included = this.expect(TokenType.CloseParenthesis, TokenType.CloseBracket).type().equals(TokenType.CloseBracket);
+                if(this.at().type().equals(TokenType.Identifier)) range = parseExpression();
+                else if(this.at().type().equals(TokenType.OpenBrace)) {
+                    range = parsePrimaryExpression();
+                } else {
+                    boolean left_included = this.expect(TokenType.OpenParenthesis, TokenType.OpenBracket).type().equals(TokenType.OpenBracket);
+                    Expression left = parseExpression();
+                    this.expect(TokenType.Comma);
+                    Expression right = parseExpression();
+                    boolean right_included = this.expect(TokenType.CloseParenthesis, TokenType.CloseBracket).type().equals(TokenType.CloseBracket);
 
-                range = new RangeLiteral(left, right, left_included, right_included);
+                    range = new RangeLiteral(left, right, left_included, right_included);
+                }
             }
 
             if(!tokens.isEmpty() && this.at().type() == TokenType.Assignment) {
@@ -172,31 +232,66 @@ public class Parser {
                 value = this.parseExpression();
             }
 
-            if(range == null && value == null) {
-                statements.add(new VariableDeclaration(var_types.get(data_type.value()), identifier.value(), false));
-            } else if(range == null) {
+            if(range == null) {
                 statements.add(new VariableDeclaration(var_types.get(data_type.value()), identifier.value(), false, value));
-            } else if(value == null) {
-                statements.add(new VariableDeclaration(var_types.get(data_type.value()), identifier.value(), false, range));
             } else {
                 statements.add(new VariableDeclaration(var_types.get(data_type.value()), identifier.value(), false, range, value));
             }
         } while(this.at().type() == TokenType.Comma);
 
+        this.expect(TokenType.Semicolon);
+
         return new DataDeclaration(statements);
     }
 
-    private Expression parseExpression() throws Throwable {
-        return parseAssignmentExpression(true);
+    private FunctionDeclaration parseFunctionDeclaration() throws Throwable {
+        this.eat();
+        Token identifier = this.expect(TokenType.Identifier);
+        List<Statement> data;
+        Expression return_value = null;
+        this.expect(TokenType.NewLine);
+
+        indent++;
+        if(!this.expect(TokenType.Indent, indent)) throw new IncorrectFunctionDeclarationSyntaxException(this.at().type());
+
+        if(this.at().type().equals(TokenType.DataToken)) data = parseDataDeclarationStatement().body();
+        else throw new MissingTokenException(TokenType.DataToken, this.at().type());
+
+        this.expect(TokenType.NewLine);
+        while(this.at().type().equals(TokenType.NewLine)) this.eat();
+        if(!this.expect(TokenType.Indent, indent)) throw new IncorrectFunctionDeclarationSyntaxException(this.at().type());
+        this.expect(TokenType.ResultToken);
+        this.expect(TokenType.Colon);
+        this.removeSkippable();
+        Token data_type = this.expect(TokenType.DataType);
+        this.expect(TokenType.Semicolon);
+
+        List<Statement> body = new ArrayList<>();
+
+        while(this.at().type().equals(TokenType.NewLine)) {
+            Token token = this.eat();
+            if(this.expect(TokenType.Indent, indent)) body.add(this.parseStatement());
+            else if(!this.at().type().equals(TokenType.NewLine)) {
+                this.tokens.add(0, token);
+                break;
+            }
+        }
+        indent--;
+
+        return new FunctionDeclaration(identifier.value(), data, var_types.get(data_type.value()), body, return_value);
     }
 
-    private Expression parseAssignmentExpression(boolean expect_semicolon) throws Throwable {
+    private Expression parseExpression() throws Throwable {
+        return parseAssignmentExpression();
+    }
+
+    private Expression parseAssignmentExpression() throws Throwable {
         Expression left = parseLogicalExpression();
 
         if(this.at().type() == TokenType.Assignment) {
             this.eat();
 
-            final Expression value = this.parseAssignmentExpression(false);
+            final Expression value = this.parseAssignmentExpression();
 
             return new AssignmentExpression(left, value);
         }
@@ -219,7 +314,7 @@ public class Parser {
     private Expression parseComparisonExpression() throws Throwable {
         Expression left = parseAdditiveExpression();
 
-        while(this.at().type().equals(TokenType.ComparisonOperator)) {
+        while(this.at().type().equals(TokenType.ComparisonOperator) || this.at().type().equals(TokenType.Equals)) {
             String operator = this.eat().value();
             Expression right = parseAdditiveExpression();
             left = new ComparisonExpression(left, right, operator);
@@ -270,7 +365,7 @@ public class Parser {
 
             final Expression index = parseExpression();
 
-            if(!(index.kind().equals(NodeType.NumericLiteral) || index.kind().equals(NodeType.Identifier)))
+            if(!(index.kind().equals(NodeType.NumericLiteral) || index.kind().equals(NodeType.Identifier) || index.kind().equals(NodeType.BinaryExpression)))
                 throw new IllegalIndexTypeException(index.kind());
 
             this.expect(TokenType.CloseBracket);
@@ -281,9 +376,7 @@ public class Parser {
     }
 
     private Expression parseCallExpression(Expression expression) throws Throwable {
-        final Expression call = new CallExpression(expression, parseArguments());
-
-        return call;
+        return new CallExpression(expression, parseArguments());
     }
 
     private List<Expression> parseArguments() throws Throwable {
@@ -363,12 +456,12 @@ public class Parser {
 
                 this.expect(TokenType.CloseBrace);
                 return new SetLiteral(values);
-            case OpenParenthesis:
+            case OpenParenthesis: {
                 this.eat();
                 final Expression value = parseExpression();
                 this.expect(TokenType.CloseParenthesis);
 
-                return value;
+                return value; }
             case BinaryOperator: {
                 String operator = this.eat().value();
 
@@ -383,6 +476,7 @@ public class Parser {
             case GetFunction:
                 this.eat();
                 String identifier = this.expect(TokenType.Identifier).value();
+                this.expect(TokenType.Semicolon);
 
                 return new GetFunction(identifier);
             default:
@@ -392,13 +486,13 @@ public class Parser {
 
     public Program produceAST(String source) throws Throwable {
         this.tokens = tokenize(source);
-        final Program program = new Program(new ArrayList<>());
+        final List<Statement> program_body = new ArrayList<>();
 
         while(isNotEOF()) {
-            program.body().add(this.parseStatement());
-            this.expect(TokenType.Semicolon);
+            this.removeSkippable();
+            program_body.add(this.parseStatement());
         }
 
-        return program;
+        return new Program(program_body);
     }
 }

@@ -36,7 +36,7 @@ public class Environment {
     public RuntimeValue assignVariable(String name, RuntimeValue value) throws Throwable {
         final Environment env = this.resolveVariable(name);
 
-        Variable variable = this.variables.get(name);
+        Variable variable = env.variables.get(name);
 
         if(variable.constant()) throw new ConstantAssignmentException(name);
         if(variable.type() != value.type() && value.type() != ValueType.NULL) throw new IncompatibleDataTypeException(variable.type(), value.type());

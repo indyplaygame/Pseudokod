@@ -63,6 +63,8 @@ public class Utils {
                 return stringifyDataDeclaration((DataDeclaration) statement);
             case VariableDeclaration:
                 return "{" + stringifyVariableDeclaration((VariableDeclaration) statement) + "}";
+            case FunctionDeclaration:
+                return "{" + stringifyFunctionDeclaration((FunctionDeclaration) statement) + "}";
             case AssignmentExpression:
                 return "{" + stringifyAssignmentExpression((AssignmentExpression) statement) + "}";
             case CallExpression:
@@ -73,6 +75,8 @@ public class Utils {
                 return stringifyGetFunction((GetFunction) statement);
 //            case IfStatement:
 //                return stringifyIfStatement((IfStatement) statement);
+            case ReturnStatement:
+                return stringifyReturnStatement((ReturnStatement) statement);
             default:
                 throw new UnrecognizedStatementException(statement);
         }
@@ -165,6 +169,10 @@ public class Utils {
         return "{kind: " + statement.kind() + "},\n";
     }
 
+    public static String stringifyReturnStatement(ReturnStatement statement) throws Throwable {
+        return "{kind: " + statement.kind() + ", value: " + stringifyStatement(statement.value()) + "}";
+    }
+
     public static String stringifyIndexExpression(IndexExpression expression) throws Throwable {
         return "{kind: " + expression.kind() + ", array: \"" + stringifyStatement(expression.array()) + "\", index: \"" + stringifyStatement(expression.index()) + "\"}";
     }
@@ -214,6 +222,17 @@ public class Utils {
             result += "null";
         }
 
+        return result;
+    }
+
+    public static String stringifyFunctionDeclaration(FunctionDeclaration expression) throws Throwable {
+        String result = "kind: " + expression.kind() + ", body: [\n";
+
+        for(Statement statement : expression.body()) {
+            result += stringifyStatement(statement).indent(indent);
+        }
+
+        result += "]";
         return result;
     }
 

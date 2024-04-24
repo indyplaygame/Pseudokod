@@ -62,8 +62,6 @@ public class Main {
 
             if(input.equals("exit")) return;
 
-//            System.out.println(Utils.stringifyTokens(Lexer.tokenize(input)));
-//            System.out.println(Utils.stringifyProgram(program));
             System.out.println(Utils.stringifyRuntimeValue(Interpreter.evaluate(program, env)));
         }
     }
@@ -72,16 +70,17 @@ public class Main {
         final String code = readFile(path);
         final Program program = parser.produceAST(code);
 
-//        System.out.println(Utils.stringifyTokens(Lexer.tokenize(code)));
-//        System.out.println(Utils.stringifyProgram(program));
-//        System.out.println(Utils.stringifyRuntimeValue(Interpreter.evaluate(program, env)));
         Interpreter.evaluate(program, env);
     }
 
     public static void main(String[] args) throws Throwable {
+        double start = System.currentTimeMillis();
         setupEnvironment();
 
-        run("./test.pk");
-//        repl();
+        if(args.length > 0) run(args[0]);
+        else repl();
+
+        double end = System.currentTimeMillis();
+        System.out.println("Code execution completed with no errors in " + (end - start) / 1000 + " seconds.");
     }
 }

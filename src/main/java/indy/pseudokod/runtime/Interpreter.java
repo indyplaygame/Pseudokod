@@ -3,12 +3,10 @@ package indy.pseudokod.runtime;
 import indy.pseudokod.ast.*;
 import indy.pseudokod.environment.Environment;
 import indy.pseudokod.exceptions.*;
+import indy.pseudokod.main.Main;
 import indy.pseudokod.runtime.values.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Scanner;
+import java.util.*;
 
 public class Interpreter {
 
@@ -169,8 +167,42 @@ public class Interpreter {
         }).toList();
         final RuntimeValue function = evaluate(node.expression(), env);
 
-        if(function.type().equals(ValueType.NativeFunction)) return ((NativeFunction) function).call(args, env);
-        else throw new InvalidCallableException(function.type());
+        if(function.type().equals(ValueType.NativeFunction)) {
+            return ((NativeFunction) function).call(args, env);
+        } else if(function.type().equals(ValueType.Function)) {
+            Function fn = (Function) function;
+            Environment scope = new Environment(fn.env());
+            List<String> parameters = fn.parameters();
+            Map<String, ValueType> parameter_types = fn.parameter_types();
+            List<String> variables = fn.variables();
+            Map<String, ValueType> variable_types = fn.variable_types();
+
+            for(int i = 0; i < parameters.size(); i++) {
+                String parameter = parameters.get(i);
+                scope.declareVariable(parameter, parameter_types.get(parameter), false, args.get(i));
+            }
+
+            for(String variable : variables) {
+                scope.declareVariable(variable, variable_types.get(variable), false, new NullValue());
+            }
+
+            RuntimeValue result = new NullValue();
+
+            for(Statement statement : fn.body()) {
+                result = evaluate(statement, scope);
+            }
+
+            return result;
+        } else throw new InvalidCallableException(function.type());
+    }
+
+    static RuntimeValue evaluateReturnStatement(ReturnStatement statement, Environment env) throws Throwable {
+        return evaluate(statement.value(), env);
+    }
+
+    static RuntimeValue evaluateImportStatement(ImportStatement statement, Environment env) throws Throwable {
+        Main.run(statement.path());
+        return new NullValue();
     }
 
     static NumberValue evaluateNumericBinaryExpression(NumberValue left, NumberValue right, String operator) throws Throwable {
@@ -215,19 +247,63 @@ public class Interpreter {
     static RuntimeValue evaluateDataDeclaration(DataDeclaration node, Environment env) throws Throwable {
         for(Statement statement : node.body()) {
             VariableDeclaration variable = (VariableDeclaration) statement;
-            RangeValue range = null;
-            RuntimeValue value = evaluate(variable.value(), env);
+            RuntimeValue value = null;
+            if(variable.value() != null) value = evaluate(variable.value(), env);
 
-            if(variable.type() != value.type()) throw new IncompatibleDataTypeException(variable.type(), value.type());
-            if(variable.range() != null) range = evaluateRange(variable.range(), env);
+            if(value != null && variable.type() != value.type()) throw new IncompatibleDataTypeException(variable.type(), value.type());
+            if(variable.range() != null) {
+                switch(variable.range().kind()) {
+                    case RangeLiteral: {
+                        RangeValue range = evaluateRange((RangeLiteral) variable.range(), env);
 
-            if(range != null && !range.inRange(((NumberValue) value).value()))
-                throw new NumberOutOfRangeException((NumberValue) value, range);
+                        if(!range.inRange(((NumberValue) value).value()))
+                            throw new NumberOutOfRangeException((NumberValue) value, range);
+                        break; }
+                    case SetLiteral:
+                        SetValue set = (SetValue) evaluate(variable.range(), env);
 
-            if(variable.value() != null) env.declareVariable(variable.symbol(), variable.type(), false, value);
+                        if(!set.inSet(value)) throw new NumberOutOfRangeException((NumberValue) value, set);
+                        break;
+                    case Identifier:
+                        RuntimeValue var  = env.getVariable(((Identifier) variable.range()).symbol());
+                        if(var instanceof RangeValue) {
+                            RangeValue range = (RangeValue) var;
+
+                            if (!range.inRange(((NumberValue) value).value()))
+                                throw new NumberOutOfRangeException((NumberValue) value, range);
+                        }
+                        break;
+                }
+            }
+
+            if(value != null) env.declareVariable(variable.symbol(), variable.type(), false, value);
             else env.declareVariable(variable.symbol(), variable.type(), false, new NullValue());
         }
 
+        return new NullValue();
+    }
+
+    static RuntimeValue evaluateFunctionDeclaration(FunctionDeclaration node, Environment env) throws Throwable {
+        List<String> parameters = new ArrayList<>();
+        Map<String, ValueType> parameter_types = new HashMap<>();
+
+        List<String> variables = new ArrayList<>();
+        Map<String, ValueType> variable_types = new HashMap<>();
+
+        for(Statement statement : node.data()) {
+            VariableDeclaration var_dec = (VariableDeclaration) statement;
+
+            if(!var_dec.symbol().endsWith("*")) {
+                variables.add(var_dec.symbol());
+                variable_types.put(var_dec.symbol(), var_dec.type());
+                continue;
+            }
+
+            parameters.add(var_dec.symbol().replace("*", ""));
+            parameter_types.put(var_dec.symbol().replace("*", ""), var_dec.type());
+        }
+
+        env.declareVariable(node.symbol(), ValueType.Function, true, new Function(node.symbol(), parameters, parameter_types, variables, variable_types, node.body(), env));
         return new NullValue();
     }
 
@@ -262,8 +338,51 @@ public class Interpreter {
         for(Statement stmt : node.body()) {
             evaluate(stmt, env);
         }
+    }
 
-        new NullValue();
+    static RuntimeValue evaluateForStatement(ForStatement node, Environment env) throws Throwable {
+        Environment scope = new Environment(env);
+
+        if(node.values().stream().anyMatch(e -> e.kind().equals(NodeType.ContinueStatement))) {
+            if(node.values().size() < 4) throw new InvalidSetSyntaxException();
+
+            RuntimeValue first = evaluate(node.values().get(0), env);
+            RuntimeValue second = evaluate(node.values().get(1), env);
+            RuntimeValue max = evaluate(node.values().get(3), env);
+
+            if(!(first.type().equals(ValueType.Number) && second.type().equals(ValueType.Number) &&
+                    node.values().get(2).kind().equals(NodeType.ContinueStatement) && max.type().equals(ValueType.Number))) throw new InvalidSetSyntaxException();
+
+            scope.declareVariable(node.control_variable(), ValueType.Number, false, first);
+
+            int step = (int) (((NumberValue) second).value() - ((NumberValue) first).value());
+
+            while((int) ((NumberValue) scope.getVariable(node.control_variable())).value() <= (int) ((NumberValue) max).value()) {
+                for(Statement statement : node.body()) {
+                    evaluate(statement, scope);
+                }
+                scope.assignVariable(node.control_variable(), new NumberValue((int) ((NumberValue) scope.getVariable(node.control_variable())).value() + step));
+            }
+        } else {
+            List<RuntimeValue> values = node.values().stream().map(v -> {
+                try {
+                    return evaluate(v, scope);
+                } catch (Throwable e) {
+                    throw new RuntimeException(e);
+                }
+            }).toList();
+
+            scope.declareVariable(node.control_variable(), ValueType.Number, false, new NullValue());
+
+            for(RuntimeValue value : values) {
+                scope.assignVariable(node.control_variable(), value);
+                for(Statement statement : node.body()) {
+                    evaluate(statement, scope);
+                }
+            }
+        }
+
+        return new NullValue();
     }
 
     public static RuntimeValue evaluate(Statement node, Environment env) throws Throwable {
@@ -331,6 +450,8 @@ public class Interpreter {
                 return evaluateProgram((Program) node, env);
             case DataDeclaration:
                 return evaluateDataDeclaration((DataDeclaration) node, env);
+            case FunctionDeclaration:
+                return evaluateFunctionDeclaration((FunctionDeclaration) node, env);
             case AssignmentExpression:
                 return evaluateAssignment((AssignmentExpression) node, env);
             case CallExpression:
@@ -347,7 +468,7 @@ public class Interpreter {
                     }
                 });
 
-                System.out.print(output);
+                System.out.println(output);
                 return new NullValue();
             case GetFunction:
                 Scanner scanner = new Scanner(System.in);
@@ -367,6 +488,12 @@ public class Interpreter {
                 return evaluateIfStatement((IfStatement) node, env);
             case ElseStatement:
                 return new NullValue();
+            case ForStatement:
+                return evaluateForStatement((ForStatement) node, env);
+            case ReturnStatement:
+                return evaluateReturnStatement((ReturnStatement) node, env);
+            case ImportStatement:
+                return evaluateImportStatement((ImportStatement) node, env);
             default:
                 throw new ASTNodeNotSetupException(node.kind());
         }

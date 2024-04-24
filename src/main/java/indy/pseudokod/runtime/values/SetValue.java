@@ -13,4 +13,14 @@ public class SetValue extends RuntimeValue{
     public List<RuntimeValue> value() {
         return this.value;
     }
+
+    public boolean inSet(RuntimeValue val) {
+        return this.value.stream().anyMatch(v -> {
+            try {
+                return v.type().equals(val.type()) && RuntimeValue.compare(v, val);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
 }

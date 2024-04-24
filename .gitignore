@@ -1,4 +1,3 @@
-
 *.class
 .idea/compiler.xml
 .idea/discord.xml
@@ -8,4 +7,7 @@
 .idea/uiDesigner.xml
 .idea/.name
 .idea/vcs.xml
-test.pk
+/out
+/test
+/test/bibloteki
+/target/classes/META-INF

@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Pseudokod:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/Pseudokod_jar</output-path>
+    <root id="archive" name="Pseudokod.jar">
+      <element id="module-output" name="Pseudokod" />
+    </root>
+  </artifact>
+</component>

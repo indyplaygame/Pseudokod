@@ -9,5 +9,6 @@ public enum ValueType {
     List,
     Set,
     Range,
-    NativeFunction
+    NativeFunction,
+    Function
 }
