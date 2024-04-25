@@ -38,6 +38,8 @@ public enum TokenType {
     IfStatement,
     ElseStatement,
     ForStatement,
+    WhileStatement,
+    DoStatement,
     Function,
     Null,
     EndOfFile

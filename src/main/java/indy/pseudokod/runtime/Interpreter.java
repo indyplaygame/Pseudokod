@@ -385,6 +385,41 @@ public class Interpreter {
         return new NullValue();
     }
 
+    static RuntimeValue evaluateWhileStatement(WhileStatement node, Environment env) throws Throwable {
+        Environment scope = new Environment(env);
+
+        if(node.expression().kind() == NodeType.Identifier && (((Identifier) node.expression()).symbol().equals("true") || ((Identifier) node.expression()).symbol().equals("prawda")))
+            throw new IllegalConditionException();
+
+        RuntimeValue expr = evaluate(node.expression(), env);
+
+        try {
+            if(node.isDoWhile()) {
+                BooleanValue expr_val;
+
+                do {
+                    for(Statement statement : node.body()) {
+                        evaluate(statement, scope);
+                    }
+                    expr_val = (BooleanValue) evaluate(node.expression(), env);
+                } while(expr_val.value());
+            } else {
+                BooleanValue expr_val = (BooleanValue) expr;
+
+                while(expr_val.value()) {
+                    for(Statement statement : node.body()) {
+                        evaluate(statement, scope);
+                    }
+                    expr_val = (BooleanValue) evaluate(node.expression(), env);
+                }
+            }
+        } catch(ClassCastException e) {
+            throw new InvalidWhileLoopExpressionException(expr.type());
+        }
+
+        return new NullValue();
+    }
+
     public static RuntimeValue evaluate(Statement node, Environment env) throws Throwable {
         switch(node.kind()) {
             case NumericLiteral:
@@ -490,6 +525,8 @@ public class Interpreter {
                 return new NullValue();
             case ForStatement:
                 return evaluateForStatement((ForStatement) node, env);
+            case WhileStatement:
+                return evaluateWhileStatement((WhileStatement) node, env);
             case ReturnStatement:
                 return evaluateReturnStatement((ReturnStatement) node, env);
             case ImportStatement:

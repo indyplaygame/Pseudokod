@@ -4,6 +4,8 @@ import indy.pseudokod.ast.*;
 import indy.pseudokod.exceptions.*;
 import indy.pseudokod.lexer.Token;
 import indy.pseudokod.lexer.TokenType;
+import indy.pseudokod.runtime.values.RuntimeValue;
+import indy.pseudokod.runtime.values.StackValue;
 import indy.pseudokod.runtime.values.ValueType;
 
 import java.util.*;
@@ -30,6 +32,8 @@ public class Parser {
         var_types.put("zbior", ValueType.Set);
         var_types.put("range", ValueType.Range);
         var_types.put("przedzial", ValueType.Range);
+        var_types.put("plate", ValueType.Stack);
+        var_types.put("talerz", ValueType.Stack);
     }
 
     private boolean isNotEOF() {
@@ -82,12 +86,12 @@ public class Parser {
                 return this.parseFunctionDeclaration();
             case PrintFunction:
                 this.eat();
-                if(this.at().type().equals(TokenType.Semicolon)) throw new UnexpectedTokenException(this.at());
+                if (this.at().type().equals(TokenType.Semicolon)) throw new UnexpectedTokenException(this.at());
 
                 List<Expression> args = new ArrayList<>();
                 args.add(parseExpression());
 
-                while(this.isNotEOF() && this.at().type().equals(TokenType.Comma)) {
+                while (this.isNotEOF() && this.at().type().equals(TokenType.Comma)) {
                     this.expect(TokenType.Comma);
                     args.add(parseExpression());
                 }
@@ -102,16 +106,18 @@ public class Parser {
                 Expression expression = parseExpression();
                 List<Statement> body = new ArrayList<>();
 
-                while(this.isNotEOF() && this.at().type().equals(TokenType.NewLine)) {
+                while (this.isNotEOF() && this.at().type().equals(TokenType.NewLine)) {
                     this.expect(TokenType.NewLine);
-                    if(!this.expect(TokenType.Indent, indent)) break;
+                    if (!this.expect(TokenType.Indent, indent)) break;
                     body.add(parseStatement());
                 }
                 indent--;
 
-                if(this.isNotEOF() && this.at().type().equals(TokenType.ElseStatement)) return new IfStatement(expression, body, parseStatement());
+                if (this.isNotEOF() && this.at().type().equals(TokenType.ElseStatement))
+                    return new IfStatement(expression, body, parseStatement());
 
-                return new IfStatement(expression, body); }
+                return new IfStatement(expression, body);
+            }
             case ElseStatement: {
                 this.eat();
 
@@ -120,33 +126,34 @@ public class Parser {
                 boolean elseif = this.at().type().equals(TokenType.IfStatement);
 
                 indent++;
-                if(this.isNotEOF() && this.at().type().equals(TokenType.IfStatement)) {
+                if (this.isNotEOF() && this.at().type().equals(TokenType.IfStatement)) {
                     this.eat();
                     expression = parseExpression();
                 }
 
-                while(this.isNotEOF() && this.at().type().equals(TokenType.NewLine)) {
+                while (this.isNotEOF() && this.at().type().equals(TokenType.NewLine)) {
                     this.expect(TokenType.NewLine);
-                    if(!this.expect(TokenType.Indent, indent)) break;
+                    if (!this.expect(TokenType.Indent, indent)) break;
                     body.add(parseStatement());
                 }
                 indent--;
 
-                if(elseif) return new IfStatement(expression, body);
-                else return new ElseStatement(body); }
-            case ForStatement:
+                if (elseif) return new IfStatement(expression, body);
+                else return new ElseStatement(body);
+            }
+            case ForStatement: {
                 this.eat();
 
                 Identifier identifier = new Identifier(this.expect(TokenType.Identifier).value());
                 ArrayList<Expression> values = new ArrayList<>();
                 this.expect(TokenType.Equals);
 
-                if(!this.at().type().equals(TokenType.NewLine)) values.add(parseExpression());
+                if (!this.at().type().equals(TokenType.NewLine)) values.add(parseExpression());
 
-                while(this.isNotEOF() && !this.at().type().equals(TokenType.NewLine)) {
+                while (this.isNotEOF() && !this.at().type().equals(TokenType.NewLine)) {
                     this.expect(TokenType.Comma);
 
-                    if(isNotEOF() && this.at().type().equals(TokenType.Dot)) {
+                    if (isNotEOF() && this.at().type().equals(TokenType.Dot)) {
                         this.eat();
                         this.expect(TokenType.Dot);
                         this.expect(TokenType.Dot);
@@ -171,6 +178,43 @@ public class Parser {
                 indent--;
 
                 return new ForStatement(identifier.symbol(), values, body);
+            } case WhileStatement: {
+                this.eat();
+                Expression expression = this.parseExpression();
+                List<Statement> body = new ArrayList<>();
+
+                indent++;
+                while (this.isNotEOF() && this.at().type().equals(TokenType.NewLine)) {
+                    Token token = this.expect(TokenType.NewLine);
+                    if (this.expect(TokenType.Indent, indent)) body.add(this.parseStatement());
+                    else {
+                        this.tokens.add(0, token);
+                        break;
+                    }
+                }
+                indent--;
+
+                return new WhileStatement(expression, body, false);
+            } case DoStatement:
+                this.eat();
+                List<Statement> body = new ArrayList<>();
+
+                indent++;
+                while(this.isNotEOF() && !this.at().type().equals(TokenType.WhileStatement)) {
+                    Token token = this.expect(TokenType.NewLine);
+                    if(this.expect(TokenType.Indent, indent)) body.add(this.parseStatement());
+                    else {
+                        this.tokens.add(0, token);
+                        break;
+                    }
+                }
+                indent--;
+
+                this.expect(TokenType.NewLine);
+                this.expect(TokenType.WhileStatement);
+                Expression expression = this.parseExpression();
+
+                return new WhileStatement(expression, body, true);
             case ReturnToken:
                 this.eat();
                 Expression value = this.parseExpression();

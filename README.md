@@ -1,7 +1,9 @@
 # Pseudokod (.pk)
 Pseudokod's adaptation as a programming language.
 
-## General Assumptions
+## Installation
+
+## Usage
 ### 1. Declaring variables
 **Syntax:**
 ```
@@ -22,6 +24,7 @@ dane:
 - `list` (Alternatively: `tablica`).
 - `set` (Alternatively: `zbior`).
 - `range` (Alternatively: `przedzial`).
+- `plate` (Alternatively: `talerz`, commonly known as stack).
 
 **Available ranges (optional, only for numbers):**
 - `Q` - Rational numbers.
@@ -127,6 +130,9 @@ do
   ...
 while condition;
 ```
+**Alternatives to the 'for' keyword:** `dla`.<br>
+**Alternatives to the 'do' keyword:** `rob`.<br>
+**Alternatives to the 'while' keyword:** `dopoki`.<br>
 
 ### 10. For loop
 **Syntax:**
@@ -196,6 +202,7 @@ UnexpectedNodeException: Node type was not expected here.
 NumberOutOfRangeException: Number number is out of range range.
 IncorrectFunctionDeclarationSyntaxException: Unexpected token found inside function declaration statement.
 IllegalConditionException: 'true' condition in while loop is not allowed.
+InvalidWhileLoopExpressionException: While loop expression is expected to return boolean value, but returned 'received' instead.
 RecursionError: Function cannot call itself.
 ```
 
@@ -225,3 +232,5 @@ import file_path;
 **Alternative to 'import' keyword:** `zaimportuj`.
 
 ## Tokens
+
+## Nodes

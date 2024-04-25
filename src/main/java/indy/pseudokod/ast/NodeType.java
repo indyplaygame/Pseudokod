@@ -25,6 +25,7 @@ public enum NodeType {
     IfStatement,
     ElseStatement,
     ForStatement,
+    WhileStatement,
     ReturnStatement,
     ImportStatement
 }

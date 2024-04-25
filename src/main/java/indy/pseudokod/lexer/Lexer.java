@@ -29,6 +29,8 @@ public class Lexer {
         keywords.put("zbior", TokenType.DataType);
         keywords.put("range", TokenType.DataType);
         keywords.put("przedzial", TokenType.DataType);
+        keywords.put("plate", TokenType.DataType);
+        keywords.put("talerz", TokenType.DataType);
         keywords.put("belongs", TokenType.InRange);
         keywords.put("in", TokenType.InRange);
         keywords.put("nalezy", TokenType.InRange);
@@ -54,6 +56,11 @@ public class Lexer {
         keywords.put("else", TokenType.ElseStatement);
         keywords.put("przeciwnie", TokenType.ElseStatement);
         keywords.put("for", TokenType.ForStatement);
+        keywords.put("dla", TokenType.ForStatement);
+        keywords.put("while", TokenType.WhileStatement);
+        keywords.put("dopoki", TokenType.WhileStatement);
+        keywords.put("do", TokenType.DoStatement);
+        keywords.put("rob", TokenType.DoStatement);
         keywords.put("function", TokenType.Function);
         keywords.put("funkcja", TokenType.Function);
         keywords.put("result", TokenType.ResultToken);
