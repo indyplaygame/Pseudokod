@@ -31,6 +31,8 @@ public class Lexer {
         keywords.put("przedzial", TokenType.DataType);
         keywords.put("plate", TokenType.DataType);
         keywords.put("talerz", TokenType.DataType);
+        keywords.put("queue", TokenType.DataType);
+        keywords.put("kolejka", TokenType.DataType);
         keywords.put("belongs", TokenType.InRange);
         keywords.put("in", TokenType.InRange);
         keywords.put("nalezy", TokenType.InRange);
@@ -99,7 +101,7 @@ public class Lexer {
                     }
                     if(!src.isEmpty() && src.get(0).equals("*")) src.remove(0);
                     if(!src.isEmpty() && src.get(0).equals("/")) src.remove(0);
-                } else tokens.add(new Token(value,TokenType.BinaryOperator, line));
+                } else tokens.add(new Token(value, TokenType.BinaryOperator, line));
             }
 //            else if(ranges.contains(src.get(0))) tokens.add(new Token(src.remove(0), TokenType.Range));
             else if(src.get(0).equals("=")) tokens.add(new Token(src.remove(0), TokenType.Equals, line));

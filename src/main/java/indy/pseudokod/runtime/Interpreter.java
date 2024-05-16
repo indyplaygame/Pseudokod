@@ -72,15 +72,11 @@ public class Interpreter {
             final StringValue left = StringValue.valueOf(lhs);
             final StringValue right = StringValue.valueOf(rhs);
 
-            switch(node.operator()) {
-                case "=":
-                    return new BooleanValue(Objects.equals(left.value(), right.value()));
-                case "≠":
-                case "!=":
-                    return new BooleanValue(!Objects.equals(left.value(), right.value()));
-                default:
-                    return new BooleanValue(false);
-            }
+            return switch (node.operator()) {
+                case "=" -> new BooleanValue(Objects.equals(left.value(), right.value()));
+                case "≠", "!=" -> new BooleanValue(!Objects.equals(left.value(), right.value()));
+                default -> new BooleanValue(false);
+            };
         }
     }
 
@@ -100,23 +96,12 @@ public class Interpreter {
 
         final BooleanValue right = (BooleanValue) rhs;
 
-        switch(node.operator()) {
-            case "AND":
-            case "I":
-            case "∧":
-                return new BooleanValue(left.value() && right.value());
-            case "OR":
-            case "LUB":
-            case "∨":
-                return new BooleanValue(left.value() || right.value());
-            case "NOT":
-            case "NIE:":
-            case "~":
-            case "¬":
-                return new BooleanValue(!right.value());
-            default:
-                return new BooleanValue(false);
-        }
+        return switch (node.operator()) {
+            case "AND", "I", "∧" -> new BooleanValue(left.value() && right.value());
+            case "OR", "LUB", "∨" -> new BooleanValue(left.value() || right.value());
+            case "NOT", "NIE", "~", "¬" -> new BooleanValue(!right.value());
+            default -> new BooleanValue(false);
+        };
     }
 
     static RuntimeValue evaluateIndexExpression(IndexExpression node, Environment env) throws Throwable {
@@ -251,6 +236,8 @@ public class Interpreter {
             if(variable.value() != null) value = evaluate(variable.value(), env);
 
             if(value != null && variable.type() != value.type()) throw new IncompatibleDataTypeException(variable.type(), value.type());
+            if(variable.type().equals(ValueType.Stack) && variable.value() == null) value = new StackValue();
+            if(variable.type().equals(ValueType.Queue) && variable.value() == null) value = new QueueValue();
             if(variable.range() != null) {
                 switch(variable.range().kind()) {
                     case RangeLiteral: {
@@ -312,7 +299,8 @@ public class Interpreter {
     }
 
     static RuntimeValue evaluateIfStatement(IfStatement node, Environment env) throws Throwable {
-        if(!(node.expression().kind().equals(NodeType.LogicalExpression) || node.expression().kind().equals(NodeType.ComparisonExpression) || node.expression().kind().equals(NodeType.Identifier)))
+        if(!(node.expression().kind().equals(NodeType.LogicalExpression) || node.expression().kind().equals(NodeType.ComparisonExpression) ||
+           node.expression().kind().equals(NodeType.Identifier) || node.expression().kind().equals(NodeType.CallExpression)))
             throw new MissingExpressionException(NodeType.LogicalExpression, node.expression().kind());
 
         BooleanValue expression = (BooleanValue) evaluate(node.expression(), env);
@@ -497,13 +485,13 @@ public class Interpreter {
                     try {
                         RuntimeValue value = evaluate(arg, env);
 
-                        output.append(StringValue.valueOf(value).value());
+                        output.append(StringValue.valueOf(value).value().replace("\\n", "\n"));
                     } catch (Throwable e) {
                         throw new RuntimeException(e);
                     }
                 });
 
-                System.out.println(output);
+                System.out.print(output);
                 return new NullValue();
             case GetFunction:
                 Scanner scanner = new Scanner(System.in);

@@ -34,6 +34,8 @@ public class Parser {
         var_types.put("przedzial", ValueType.Range);
         var_types.put("plate", ValueType.Stack);
         var_types.put("talerz", ValueType.Stack);
+        var_types.put("queue", ValueType.Queue);
+        var_types.put("kolejka", ValueType.Queue);
     }
 
     private boolean isNotEOF() {
@@ -91,12 +93,10 @@ public class Parser {
                 List<Expression> args = new ArrayList<>();
                 args.add(parseExpression());
 
-                while (this.isNotEOF() && this.at().type().equals(TokenType.Comma)) {
+                while(this.isNotEOF() && this.at().type().equals(TokenType.Comma)) {
                     this.expect(TokenType.Comma);
                     args.add(parseExpression());
                 }
-
-                this.expect(TokenType.Semicolon);
 
                 return new PrintFunction(args);
             case IfStatement: {
@@ -106,14 +106,17 @@ public class Parser {
                 Expression expression = parseExpression();
                 List<Statement> body = new ArrayList<>();
 
-                while (this.isNotEOF() && this.at().type().equals(TokenType.NewLine)) {
+                while(this.isNotEOF() && this.at().type().equals(TokenType.NewLine)) {
                     this.expect(TokenType.NewLine);
                     if (!this.expect(TokenType.Indent, indent)) break;
                     body.add(parseStatement());
                 }
                 indent--;
 
-                if (this.isNotEOF() && this.at().type().equals(TokenType.ElseStatement))
+                if(this.at().type().equals(TokenType.Semicolon)) this.eat();
+                this.removeSkippable();
+
+                if(this.isNotEOF() && this.at().type().equals(TokenType.ElseStatement))
                     return new IfStatement(expression, body, parseStatement());
 
                 return new IfStatement(expression, body);
@@ -126,7 +129,7 @@ public class Parser {
                 boolean elseif = this.at().type().equals(TokenType.IfStatement);
 
                 indent++;
-                if (this.isNotEOF() && this.at().type().equals(TokenType.IfStatement)) {
+                if(elseif) {
                     this.eat();
                     expression = parseExpression();
                 }
@@ -218,7 +221,6 @@ public class Parser {
             case ReturnToken:
                 this.eat();
                 Expression value = this.parseExpression();
-                this.expect(TokenType.Semicolon);
 
                 return new ReturnStatement(value);
             case ImportToken:
@@ -226,7 +228,6 @@ public class Parser {
                 this.expect(TokenType.Apostrophe);
                 String path = this.expect(TokenType.Character).value();
                 this.expect(TokenType.Apostrophe);
-                this.expect(TokenType.Semicolon);
 
                 return new ImportStatement(path);
             default:
@@ -283,7 +284,7 @@ public class Parser {
             }
         } while(this.at().type() == TokenType.Comma);
 
-        this.expect(TokenType.Semicolon);
+        if(this.at().type().equals(TokenType.Semicolon)) this.eat();
 
         return new DataDeclaration(statements);
     }
@@ -308,7 +309,7 @@ public class Parser {
         this.expect(TokenType.Colon);
         this.removeSkippable();
         Token data_type = this.expect(TokenType.DataType);
-        this.expect(TokenType.Semicolon);
+        if(this.at().type().equals(TokenType.Semicolon)) this.eat();
 
         List<Statement> body = new ArrayList<>();
 
@@ -520,7 +521,6 @@ public class Parser {
             case GetFunction:
                 this.eat();
                 String identifier = this.expect(TokenType.Identifier).value();
-                this.expect(TokenType.Semicolon);
 
                 return new GetFunction(identifier);
             default:
@@ -535,6 +535,7 @@ public class Parser {
         while(isNotEOF()) {
             this.removeSkippable();
             program_body.add(this.parseStatement());
+            while(this.at().type().equals(TokenType.Semicolon)) this.eat();
         }
 
         return new Program(program_body);

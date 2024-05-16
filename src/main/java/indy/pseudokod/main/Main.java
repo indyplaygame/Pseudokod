@@ -41,6 +41,18 @@ public class Main {
         env.declareVariable("wait", ValueType.NativeFunction, true, new NativeFunction(Functions::wait));
         env.declareVariable("delay", ValueType.NativeFunction, true, new NativeFunction(Functions::wait));
         env.declareVariable("czekaj", ValueType.NativeFunction, true, new NativeFunction(Functions::wait));
+        env.declareVariable("push", ValueType.NativeFunction, true, new NativeFunction(Functions::push));
+        env.declareVariable("pchnij", ValueType.NativeFunction, true, new NativeFunction(Functions::push));
+        env.declareVariable("pop", ValueType.NativeFunction, true, new NativeFunction(Functions::pop));
+        env.declareVariable("puknij", ValueType.NativeFunction, true, new NativeFunction(Functions::pop));
+        env.declareVariable("size", ValueType.NativeFunction, true, new NativeFunction(Functions::size));
+        env.declareVariable("rozmiar", ValueType.NativeFunction, true, new NativeFunction(Functions::size));
+        env.declareVariable("empty", ValueType.NativeFunction, true, new NativeFunction(Functions::empty));
+        env.declareVariable("pusty", ValueType.NativeFunction, true, new NativeFunction(Functions::empty));
+        env.declareVariable("top", ValueType.NativeFunction, true, new NativeFunction(StackValue::top));
+        env.declareVariable("szczyt", ValueType.NativeFunction, true, new NativeFunction(StackValue::top));
+        env.declareVariable("front", ValueType.NativeFunction, true, new NativeFunction(QueueValue::front));
+        env.declareVariable("poczatek", ValueType.NativeFunction, true, new NativeFunction(QueueValue::front));
     }
 
     public static String readFile(String path) throws IOException {
@@ -81,6 +93,6 @@ public class Main {
         else repl();
 
         double end = System.currentTimeMillis();
-        System.out.println("Code execution completed with no errors in " + (end - start) / 1000 + " seconds.");
+        System.out.println("\nCode execution completed with no errors in " + (end - start) / 1000 + " seconds.");
     }
 }

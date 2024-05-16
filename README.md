@@ -24,7 +24,8 @@ dane:
 - `list` (Alternatively: `tablica`).
 - `set` (Alternatively: `zbior`).
 - `range` (Alternatively: `przedzial`).
-- `plate` (Alternatively: `talerz`, commonly known as stack).
+- `plate` (Alternatively: `talerz`, commonly known as stack, Last-In-First-Out).
+- `queue` (Alternatively: `kolejka`, First-In-First-Out).
 
 **Available ranges (optional, only for numbers):**
 - `Q` - Rational numbers.
@@ -172,7 +173,17 @@ function_name(arg, arg1);
  - `date()` - Returns current date as string in format 'DD-MM-YYYY'.
  - `time()` - Returns current time as string in format 'HH:MM:SS'. (Alternatively: `czas`)
  - `random()` - Returns random integer between `1` and `2,147,483,647`. (Alternatively: `losuj`)
- - `wait(int n)` - Waits `n` milliseconds before executing the rest of the code. (Alternatively: `delay`, `czekaj`)
+ - `wait(number n)` - Waits `n` milliseconds before executing the rest of the code. (Alternatively: `delay`, `czekaj`)
+ - `push(plate p, any n)` - Adds a pancake (element) with value `n` to the `p` plate (stack). (Alternatively: `pchnij`)
+ - `push(queue q, any n)` - Adds an element with value `n` to the `q` queue. (Alternatively: `pchnij`)
+ - `pop(plate p)` - Removes a pancake (element) from the top of the plate `p` and returns its value. (Alternatively: `puknij`)
+ - `pop(queue q)` - Removes the first element from the queue `q` and returns its value. (Alternatively: `puknij`)
+ - `size(plate p)` - Returns the amount of pancakes on the plate `p`. (Alternatively: `rozmiar`)
+ - `size(queue q)` - Returns the size of queue `q`. (Alternatively: `rozmiar`)
+ - `empty(plate p)` - Returns `true` if there are no pancakes on the plate `p` and `false` if there are any pancakes. (Alternatively: `pusty`)
+ - `empty(queue q)` - Returns `true` if queue `q` is empty and `false` if it's not empty. (Alternatively: `pusty`)
+ - `top(plate p)` - Returns the value of pancake from the top of the plate `p`. (Alternatively: `szczyt`)
+ - `front(queue q)` - Returns the value of the first element of the queue `q`. (Alternatively: `poczatek`)
 
 ### 13. Exceptions
 **Possible exceptions:**
@@ -234,3 +245,5 @@ import file_path;
 ## Tokens
 
 ## Nodes
+
+## Built-in libraries

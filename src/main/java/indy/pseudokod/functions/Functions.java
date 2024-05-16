@@ -46,4 +46,34 @@ public class Functions {
 
         return new NullValue();
     }
+
+    public static RuntimeValue push(List<RuntimeValue> args, Environment env) throws Throwable {
+        if(args.size() != 2) throw new ArgumentsAmountException(args.size(), 2);
+        if(args.get(0) instanceof StackValue stack) stack.push(args.get(1));
+        else if(args.get(0) instanceof QueueValue queue) queue.push(args.get(1));
+        else throw new IllegalDataTypeException(args.get(0).type().name());
+
+        return new NullValue();
+    }
+
+    public static RuntimeValue pop(List<RuntimeValue> args, Environment env) throws Throwable {
+        if(args.size() != 1) throw new ArgumentsAmountException(args.size(), 1);
+        if(args.get(0) instanceof StackValue stack) return stack.pop();
+        else if(args.get(0) instanceof QueueValue queue) return queue.pop();
+        else throw new IllegalDataTypeException(args.get(0).type().name());
+    }
+
+    public static RuntimeValue size(List<RuntimeValue> args, Environment env) throws Throwable {
+        if(args.size() != 1) throw new ArgumentsAmountException(args.size(), 1);
+        if(args.get(0) instanceof StackValue stack) return stack.size();
+        else if(args.get(0) instanceof QueueValue queue) return queue.size();
+        else throw new IllegalDataTypeException(args.get(0).type().name());
+    }
+
+    public static RuntimeValue empty(List<RuntimeValue> args, Environment env) throws Throwable {
+        if(args.size() != 1) throw new ArgumentsAmountException(args.size(), 1);
+        if(args.get(0) instanceof StackValue stack) return stack.empty();
+        if(args.get(0) instanceof QueueValue queue) return queue.empty();
+        else throw new IllegalDataTypeException(args.get(0).type().name());
+    }
 }
