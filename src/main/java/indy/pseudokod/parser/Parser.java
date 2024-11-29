@@ -4,8 +4,6 @@ import indy.pseudokod.ast.*;
 import indy.pseudokod.exceptions.*;
 import indy.pseudokod.lexer.Token;
 import indy.pseudokod.lexer.TokenType;
-import indy.pseudokod.runtime.values.RuntimeValue;
-import indy.pseudokod.runtime.values.StackValue;
 import indy.pseudokod.runtime.values.ValueType;
 
 import java.util.*;
@@ -219,6 +217,7 @@ public class Parser {
 
                 return new WhileStatement(expression, body, true);
             case ReturnToken:
+                // TODO: Fix return statements in the if statement
                 this.eat();
                 Expression value = this.parseExpression();
 
@@ -345,24 +344,48 @@ public class Parser {
     }
 
     private Expression parseLogicalExpression() throws Throwable {
-        Expression left = parseComparisonExpression();
+        Expression left = parseBitwiseExpression();
 
         while(this.at().type().equals(TokenType.LogicalOperator)) {
             String operator = this.eat().value();
-            Expression right = parseComparisonExpression();
+            Expression right = parseBitwiseExpression();
             left = new LogicalExpression(left, right, operator);
         }
 
         return left;
     }
 
+    private Expression parseBitwiseExpression() throws Throwable {
+        Expression left = parseComparisonExpression();
+
+        while(this.at().type().equals(TokenType.BitwiseOperator)) {
+            String operator = this.eat().value();
+            Expression right = parseComparisonExpression();
+            left = new BitwiseExpression(left, right, operator);
+        }
+
+        return left;
+    }
+
     private Expression parseComparisonExpression() throws Throwable {
-        Expression left = parseAdditiveExpression();
+        Expression left = parseShiftExpression();
 
         while(this.at().type().equals(TokenType.ComparisonOperator) || this.at().type().equals(TokenType.Equals)) {
             String operator = this.eat().value();
-            Expression right = parseAdditiveExpression();
+            Expression right = parseShiftExpression();
             left = new ComparisonExpression(left, right, operator);
+        }
+
+        return left;
+    }
+
+    private Expression parseShiftExpression() throws Throwable {
+        Expression left = parseAdditiveExpression();
+
+        while(this.at().type().equals(TokenType.ShiftOperator)) {
+            String operator = this.eat().value();
+            Expression right = parseAdditiveExpression();
+            left = new BitwiseExpression(left, right, operator);
         }
 
         return left;
@@ -510,14 +533,20 @@ public class Parser {
             case BinaryOperator: {
                 String operator = this.eat().value();
 
-                return new BinaryExpression(new NumericLiteral("0"), new NumericLiteral(this.eat().value()), operator); }
-            case LogicalOperator:
+                return new BinaryExpression(new NumericLiteral("0"), parseExpression(), operator);
+            } case LogicalOperator: {
                 String operator = this.eat().value();
 
-                if(!(operator.equals("NOT") || operator.equals("NIE") || operator.equals("~") || operator.equals("¬")))
+                if (!(operator.equals("NOT") || operator.equals("NIE") || operator.equals("¬")))
                     throw new IllegalExpressionStartException(ValueType.Boolean);
 
                 return new LogicalExpression(parseExpression(), operator);
+            } case BitwiseOperator:
+                String operator = this.eat().value();
+
+                if(!operator.equals("~")) throw new IllegalExpressionStartException(ValueType.Boolean);
+
+                return new BitwiseExpression(parseExpression(), operator);
             case GetFunction:
                 this.eat();
                 String identifier = this.expect(TokenType.Identifier).value();

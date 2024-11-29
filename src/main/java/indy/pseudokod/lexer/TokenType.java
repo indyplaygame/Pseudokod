@@ -20,6 +20,8 @@ public enum TokenType {
     Equals,
     ComparisonOperator,
     LogicalOperator,
+    BitwiseOperator,
+    ShiftOperator,
     DataToken,
     ResultToken,
     ReturnToken,

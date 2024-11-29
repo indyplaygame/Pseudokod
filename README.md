@@ -3,6 +3,8 @@ Pseudokod's adaptation as a programming language.
 
 ## Installation
 
+## Visual Studio Code Extension
+
 ## Usage
 ### 1. Declaring variables
 **Syntax:**
@@ -72,9 +74,19 @@ variable_name := value;
 **Available logical operators:**
 - Conjunction (`AND`, `I`, `∧`).
 - Alternative (`OR`, `LUB`, `∨`).
-- Negation (`NOT`, `NIE`, `¬`, `~`).
+- Negation (`NOT`, `NIE`, `¬`).
+- Exclusive disjunction (`XOR`, `⊕`).
 
-### 5. Arithmetical operators
+### 5. Bitwise operators
+**Available bitwise operators:**
+- Bitwise NOT (`~`).
+- Bitwise AND (`&`).
+- Bitwise OR (`|`).
+- Bitwise XOR (`^`).
+- Bitwise left shift (`<<`).
+- Bitwise right shift (`>>`).
+
+### 6. Arithmetical operators
 **Available arithmetical operators:**
 - Addition (`+`).
 - Subtraction (`-`).
@@ -83,16 +95,16 @@ variable_name := value;
 - Integer division (`div`).
 - Modulus (`mod`).
 
-### 6. Outputting data to the user
+### 7. Outputting data to the user
 **Syntax:**
 ```
 print "text";
 print variable_name;
 ```
 
-**Alternatives to the 'print' statement:** `write`, `wypisz`.
+**Alternatives to the 'print' statement:** `write`, `wypisz`, `drukuj`, `wyprintuj`.
 
-### 7. Getting data from the user.
+### 8. Getting data from the user.
 **Syntax:**
 ```
 get variable_name;
@@ -100,7 +112,7 @@ get variable_name;
 
 **Alternatives to the 'get' statement:** `load`, `wczytaj`, `wprowadz`, `input`.
 
-### 8. If statement
+### 9. If statement
 **Syntax:**
 ```
 if condition
@@ -117,7 +129,7 @@ else
 **Alternatives to the 'if' keyword:** `jezeli`, `jesli`.<br>
 **Alternatives to the 'else' keyword:** `przeciwnie`.
 
-### 9. While loop (Do-while)
+### 10. While loop (Do-while)
 **Syntax:**
 ```
 // While loop
@@ -135,7 +147,7 @@ while condition;
 **Alternatives to the 'do' keyword:** `rob`.<br>
 **Alternatives to the 'while' keyword:** `dopoki`.<br>
 
-### 10. For loop
+### 11. For loop
 **Syntax:**
 ```
 for control_variable = 0, 1, ..., n
@@ -143,7 +155,7 @@ for control_variable = 0, 1, ..., n
   ...
 ```
 
-### 11. Functions
+### 12. Functions
 **Syntax:**
 ```
 // Declaration
@@ -167,7 +179,7 @@ function_name(arg, arg1);
 **Alternative to the 'results' keyword:** `wynik`.<br>
 **Alternative to the 'return' keyword:** `zwroc`.
 
-### 12. Built-in functions
+### 13. Built-in functions
 
 **List of built-in functions:**
  - `date()` - Returns current date as string in format 'DD-MM-YYYY'.
@@ -185,7 +197,7 @@ function_name(arg, arg1);
  - `top(plate p)` - Returns the value of pancake from the top of the plate `p`. (Alternatively: `szczyt`)
  - `front(queue q)` - Returns the value of the first element of the queue `q`. (Alternatively: `poczatek`)
 
-### 13. Exceptions
+### 14. Exceptions
 **Possible exceptions:**
 ```
 UnrecognizedCharacterException: Character 'character' is unrecognizable and cannot be converted to Token.
@@ -217,7 +229,7 @@ InvalidWhileLoopExpressionException: While loop expression is expected to return
 RecursionError: Function cannot call itself.
 ```
 
-### 14. Comments
+### 15. Comments
 **Syntax:**
 ```
 // This is a one line comment
@@ -226,7 +238,7 @@ This is a multi line comment
 */
 ```
 
-### 15. Ending program
+### 16. Ending program
 **Syntax:**
 ```
 who understands?;
@@ -234,7 +246,7 @@ who understands?;
 
 **Alternative to 'who understands?':** `kto rozumie?`.
 
-### 16. Using external libraries
+### 17. Using external libraries
 **Syntax:**
 ```
 import file_path;
@@ -245,5 +257,9 @@ import file_path;
 ## Tokens
 
 ## Nodes
+
+## Reserved keywords
+
+## Environmental variables
 
 ## Built-in libraries

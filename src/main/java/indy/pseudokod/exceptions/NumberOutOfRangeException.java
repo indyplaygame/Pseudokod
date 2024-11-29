@@ -6,7 +6,7 @@ import java.util.List;
 
 public class NumberOutOfRangeException extends Exception {
     public NumberOutOfRangeException(NumberValue number, RangeValue range) {
-        super("Number " + number.value() + " is out of range " + (range.left_included() ? "[" : "(") + range.left_bound() + ", " + range.right_bound() + (range.right_included() ? "]" : ")") + ".");
+        super("Number " + number.value() + " is out of range " + (range.left_inclusive() ? "[" : "(") + range.left_bound() + ", " + range.right_bound() + (range.right_inclusive() ? "]" : ")") + ".");
     }
 
     public NumberOutOfRangeException(NumberValue number, SetValue set) throws InvalidConversionDataTypeException {

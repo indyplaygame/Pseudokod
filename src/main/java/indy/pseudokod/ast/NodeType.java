@@ -4,6 +4,7 @@ public enum NodeType {
     BinaryExpression,
     ComparisonExpression,
     LogicalExpression,
+    BitwiseExpression,
     Identifier,
     NumericLiteral,
     CharacterLiteral,

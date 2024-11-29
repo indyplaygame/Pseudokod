@@ -3,13 +3,11 @@ package indy.pseudokod.functions;
 import indy.pseudokod.environment.Environment;
 import indy.pseudokod.exceptions.ArgumentsAmountException;
 import indy.pseudokod.exceptions.IllegalDataTypeException;
-import indy.pseudokod.exceptions.InvalidConversionDataTypeException;
 import indy.pseudokod.runtime.values.*;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import java.util.Scanner;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 

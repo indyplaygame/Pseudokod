@@ -82,25 +82,52 @@ public class Interpreter {
 
     static RuntimeValue evaluateLogicalExpression(LogicalExpression node, Environment env) throws Throwable {
         RuntimeValue lhs;
-        BooleanValue left = new BooleanValue(false);
+        boolean left = false;
         final RuntimeValue rhs = evaluate(node.right(), env);
 
         if(node.left() != null) {
             lhs = evaluate(node.left(), env);
 
             if(lhs.type() != ValueType.Boolean) throw new IncompatibleDataTypeException(ValueType.Boolean, lhs.type());
-            left = (BooleanValue) lhs;
+            left = ((BooleanValue) lhs).value();
         }
 
         if(rhs.type() != ValueType.Boolean) throw new IncompatibleDataTypeException(ValueType.Boolean, rhs.type());
 
-        final BooleanValue right = (BooleanValue) rhs;
+        final boolean right = ((BooleanValue) rhs).value();
 
-        return switch (node.operator()) {
-            case "AND", "I", "∧" -> new BooleanValue(left.value() && right.value());
-            case "OR", "LUB", "∨" -> new BooleanValue(left.value() || right.value());
-            case "NOT", "NIE", "~", "¬" -> new BooleanValue(!right.value());
+        return switch(node.operator()) {
+            case "AND", "I", "∧" -> new BooleanValue(left && right);
+            case "OR", "LUB", "∨" -> new BooleanValue(left || right);
+            case "NOT", "NIE", "¬" -> new BooleanValue(!right);
+            case "XOR", "⊕" -> new BooleanValue((left || right) && !(left && right));
             default -> new BooleanValue(false);
+        };
+    }
+
+    static RuntimeValue evaluateBitwiseExpression(BitwiseExpression node, Environment env) throws Throwable {
+        RuntimeValue lhs;
+        int left = 0;
+        final RuntimeValue rhs = evaluate(node.right(), env);
+
+        if(node.left() != null) {
+            lhs = evaluate(node.left(), env);
+            if(!lhs.type().equals(ValueType.Number)) throw new IncompatibleDataTypeException(ValueType.Boolean, lhs.type());
+            left = (int) ((NumberValue) lhs).value();
+        }
+
+
+        if(!rhs.type().equals(ValueType.Number)) throw new IncompatibleDataTypeException(ValueType.Boolean, rhs.type());
+        final int right = (int) ((NumberValue) rhs).value();
+
+        return switch(node.operator()) {
+            case "~" -> new NumberValue(~right);
+            case "&" -> new NumberValue(left & right);
+            case "|" -> new NumberValue(left | right);
+            case "^" -> new NumberValue(left ^ right);
+            case "<<" -> new NumberValue(left << right);
+            case ">>" -> new NumberValue(left >> right);
+            default -> new NumberValue(0);
         };
     }
 
@@ -243,7 +270,7 @@ public class Interpreter {
                     case RangeLiteral: {
                         RangeValue range = evaluateRange((RangeLiteral) variable.range(), env);
 
-                        if(!range.inRange(((NumberValue) value).value()))
+                        if(!range.include(((NumberValue) value).value()))
                             throw new NumberOutOfRangeException((NumberValue) value, range);
                         break; }
                     case SetLiteral:
@@ -256,7 +283,7 @@ public class Interpreter {
                         if(var instanceof RangeValue) {
                             RangeValue range = (RangeValue) var;
 
-                            if (!range.inRange(((NumberValue) value).value()))
+                            if (!range.include(((NumberValue) value).value()))
                                 throw new NumberOutOfRangeException((NumberValue) value, range);
                         }
                         break;
@@ -467,6 +494,8 @@ public class Interpreter {
                 return evaluateComparisonExpression((ComparisonExpression) node, env);
             case LogicalExpression:
                 return evaluateLogicalExpression((LogicalExpression) node, env);
+            case BitwiseExpression:
+                return evaluateBitwiseExpression((BitwiseExpression) node, env);
             case IndexExpression:
                 return evaluateIndexExpression((IndexExpression) node, env);
             case Program:
@@ -485,7 +514,9 @@ public class Interpreter {
                     try {
                         RuntimeValue value = evaluate(arg, env);
 
-                        output.append(StringValue.valueOf(value).value().replace("\\n", "\n"));
+                        output.append(StringValue.valueOf(value).value()
+                                .replace("\\n", "\n")
+                                .replace("\\\"", "\""));
                     } catch (Throwable e) {
                         throw new RuntimeException(e);
                     }

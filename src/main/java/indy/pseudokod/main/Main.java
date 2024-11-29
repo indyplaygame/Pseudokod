@@ -2,18 +2,16 @@ package indy.pseudokod.main;
 
 import indy.pseudokod.ast.Program;
 import indy.pseudokod.environment.Environment;
-import indy.pseudokod.exceptions.InvalidConversionDataTypeException;
 import indy.pseudokod.functions.Functions;
-import indy.pseudokod.lexer.Lexer;
 import indy.pseudokod.parser.Parser;
 import indy.pseudokod.runtime.Interpreter;
 import indy.pseudokod.runtime.values.*;
-import indy.pseudokod.utils.Utils;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.CodeSource;
 import java.util.Scanner;
 
 public class Main {
@@ -32,6 +30,13 @@ public class Main {
         env.declareVariable("∞", ValueType.Number, true, new NumberValue(Double.MAX_VALUE));
         env.declareVariable("pi", ValueType.Number, true, new NumberValue(Math.PI));
         env.declareVariable("π", ValueType.Number, true, new NumberValue(Math.PI));
+        env.declareVariable("endl", ValueType.String, true, new StringValue("\n"));
+        env.declareVariable("Q", ValueType.Range, true, new RangeValue(-Double.MAX_VALUE, Double.MAX_VALUE, false, false));
+        env.declareVariable("Z", ValueType.Range, true, new RangeValue(-Double.MAX_VALUE, Double.MAX_VALUE, false, false, (n) -> n == n.intValue()));
+        env.declareVariable("Z+", ValueType.Range, true, new RangeValue(0, Double.MAX_VALUE, false, false, (n) -> n == n.intValue()));
+        env.declareVariable("Z-", ValueType.Range, true, new RangeValue(-Double.MAX_VALUE, 0, false, false, (n) -> n == n.intValue()));
+        env.declareVariable("N", ValueType.Range, true, new RangeValue(0, Double.MAX_VALUE, true, false, (n) -> n == n.intValue()));
+        env.declareVariable("N+", ValueType.Range, true, new RangeValue(0, Double.MAX_VALUE, true, false, (n) -> n == n.intValue()));
 
         env.declareVariable("date", ValueType.NativeFunction, true, new NativeFunction(Functions::date));
         env.declareVariable("time", ValueType.NativeFunction, true, new NativeFunction(Functions::time));
@@ -74,11 +79,19 @@ public class Main {
 
             if(input.equals("exit")) return;
 
-            System.out.println(Utils.stringifyRuntimeValue(Interpreter.evaluate(program, env)));
+            Interpreter.evaluate(program, env);
+            System.out.print("\n");
         }
     }
 
     public static void run(String path) throws Throwable {
+        if(!(new File(path)).exists()) {
+            CodeSource source = Main.class.getProtectionDomain().getCodeSource();
+            File file = new File(source.getLocation().toURI().getPath());
+            String dir = file.getParentFile().getPath();
+            path = dir + "\\" + path;
+        }
+
         final String code = readFile(path);
         final Program program = parser.produceAST(code);
 
@@ -93,6 +106,6 @@ public class Main {
         else repl();
 
         double end = System.currentTimeMillis();
-        System.out.println("\nCode execution completed with no errors in " + (end - start) / 1000 + " seconds.");
+        if(args.length > 1 && args[1].equalsIgnoreCase("-debug")) System.out.println("\nCode execution completed with no errors in " + (end - start) / 1000 + " seconds.");
     }
 }

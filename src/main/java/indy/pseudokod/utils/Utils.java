@@ -254,13 +254,16 @@ public class Utils {
 
             return result + "]}";
         } else if(value.type() == ValueType.Set) {
-            String result = "{type: " + value.type() + ", values: [\n";
+            StringBuilder result = new StringBuilder("{type: " + value.type() + ", values: [\n");
 
             for(RuntimeValue val : ((SetValue) value).value()) {
-                result += "\t" + stringifyRuntimeValue(val) + "\n";
+                result.append("\t").append(stringifyRuntimeValue(val)).append("\n");
             }
 
             return result + "]}";
+        } else if(value.type() == ValueType.Range) {
+            RangeValue range = (RangeValue) value;
+            return "{type: " + value.type() + ", value: " + (range.left_inclusive() ? "[" : "(") + range.left_bound() + ", " + range.right_bound() + (range.right_inclusive() ? "]" : ")") + "}";
         } else if(value.type() == ValueType.NULL) return "{type: " + value.type() + ", value: \"" + ((NullValue) value).value() + "\"}";
         else return "{type: " + value.type() + "}";
     }

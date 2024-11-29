@@ -3,10 +3,7 @@ package indy.pseudokod.lexer;
 import indy.pseudokod.exceptions.StringTerminationException;
 import indy.pseudokod.exceptions.UnrecognizedCharacterException;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Lexer {
 
@@ -43,11 +40,14 @@ public class Lexer {
         keywords.put("I", TokenType.LogicalOperator);
         keywords.put("NOT", TokenType.LogicalOperator);
         keywords.put("NIE", TokenType.LogicalOperator);
+        keywords.put("XOR", TokenType.LogicalOperator);
         keywords.put("mod", TokenType.ModulusOperator);
         keywords.put("div", TokenType.DivOperator);
         keywords.put("print", TokenType.PrintFunction);
         keywords.put("write", TokenType.PrintFunction);
         keywords.put("wypisz", TokenType.PrintFunction);
+        keywords.put("drukuj", TokenType.PrintFunction);
+        keywords.put("wyprintuj", TokenType.PrintFunction);
         keywords.put("get", TokenType.GetFunction);
         keywords.put("input", TokenType.GetFunction);
         keywords.put("wczytaj", TokenType.GetFunction);
@@ -77,7 +77,6 @@ public class Lexer {
         final ArrayList<Token> tokens = new ArrayList<>();
         final ArrayList<String> src = new ArrayList<>(List.of(source.split("")));
         final ArrayList<String> operators = new ArrayList<>(List.of(new String[]{"+", "-", "*"}));
-//        final ArrayList<String> ranges = new ArrayList<>(List.of(new String[]{"N", "Z", "Q"}));
         int line = 1;
 
         while(!src.isEmpty()) {
@@ -121,6 +120,9 @@ public class Lexer {
                 if(!src.isEmpty() && src.get(0).equals("-")) {
                     value += src.remove(0);
                     tokens.add(new Token(value, TokenType.Assignment, line));
+                } else if(!src.isEmpty() && src.get(0).equals("<")) {
+                    value += src.remove(0);
+                    tokens.add(new Token(value, TokenType.ShiftOperator, line));
                 } else if(!src.isEmpty() && src.get(0).equals("=")) {
                     value += src.remove(0);
                     tokens.add(new Token(value, TokenType.ComparisonOperator, line));
@@ -128,7 +130,10 @@ public class Lexer {
             } else if(src.get(0).equals(">")) {
                 String value = src.remove(0);
 
-                if(!src.isEmpty() && src.get(0).equals("=")) {
+                if(!src.isEmpty() && src.get(0).equals(">")) {
+                    value += src.remove(0);
+                    tokens.add(new Token(value, TokenType.ShiftOperator, line));
+                } else if(!src.isEmpty() && src.get(0).equals("=")) {
                     value += src.remove(0);
                     tokens.add(new Token(value, TokenType.ComparisonOperator, line));
                 } else tokens.add(new Token(value, TokenType.ComparisonOperator, line));
@@ -142,7 +147,12 @@ public class Lexer {
             }
             else if(src.get(0).equals("∨")) tokens.add(new Token(src.remove(0), TokenType.LogicalOperator, line));
             else if(src.get(0).equals("∧")) tokens.add(new Token(src.remove(0), TokenType.LogicalOperator, line));
-            else if(src.get(0).equals("¬") || src.get(0).equals("~")) tokens.add(new Token(src.remove(0), TokenType.LogicalOperator, line));
+            else if(src.get(0).equals("¬")) tokens.add(new Token(src.remove(0), TokenType.LogicalOperator, line));
+            else if(src.get(0).equals("⊕")) tokens.add(new Token(src.remove(0), TokenType.LogicalOperator, line));
+            else if(src.get(0).equals("~")) tokens.add(new Token(src.remove(0), TokenType.BitwiseOperator, line));
+            else if(src.get(0).equals("&")) tokens.add(new Token(src.remove(0), TokenType.BitwiseOperator, line));
+            else if(src.get(0).equals("|")) tokens.add(new Token(src.remove(0), TokenType.BitwiseOperator, line));
+            else if(src.get(0).equals("^")) tokens.add(new Token(src.remove(0), TokenType.BitwiseOperator, line));
             else if(src.get(0).equals(";")) tokens.add(new Token(src.remove(0), TokenType.Semicolon, line));
             else if(src.get(0).equals(",")) tokens.add(new Token(src.remove(0), TokenType.Comma, line));
             else if(src.get(0).equals(".")) tokens.add(new Token(src.remove(0), TokenType.Dot, line));
