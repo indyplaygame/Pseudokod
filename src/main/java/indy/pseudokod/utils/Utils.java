@@ -8,7 +8,6 @@ import indy.pseudokod.runtime.values.*;
 import java.util.List;
 
 public class Utils {
-
     private static int indent = 1;
 
     public static String stringifyTokens(List<Token> tokens) {
@@ -40,46 +39,27 @@ public class Utils {
 
     public static String stringifyStatement(Statement statement) throws Throwable {
 
-        switch(statement.kind()) {
-            case NumericLiteral:
-                return stringifyNumber((NumericLiteral) statement);
-            case CharacterLiteral:
-                return stringifyCharacter((CharacterLiteral) statement);
-            case StringLiteral:
-                return stringifyString((StringLiteral) statement);
-            case ArrayLiteral:
-                return stringifyArray((ArrayLiteral) statement);
-            case SetLiteral:
-                return stringifySet((SetLiteral) statement);
-            case Identifier:
-                return stringifyIdentifier((Identifier) statement);
-            case ContinueStatement:
-                return stringifyContinueStatement((ContinueStatement) statement);
-            case BinaryExpression:
-                return "{\n" + stringifyBinaryExpression((BinaryExpression) statement) + "}";
-            case IndexExpression:
-                return stringifyIndexExpression((IndexExpression) statement);
-            case DataDeclaration:
-                return stringifyDataDeclaration((DataDeclaration) statement);
-            case VariableDeclaration:
-                return "{" + stringifyVariableDeclaration((VariableDeclaration) statement) + "}";
-            case FunctionDeclaration:
-                return "{" + stringifyFunctionDeclaration((FunctionDeclaration) statement) + "}";
-            case AssignmentExpression:
-                return "{" + stringifyAssignmentExpression((AssignmentExpression) statement) + "}";
-            case CallExpression:
-                return stringifyCallExpression((CallExpression) statement);
-            case PrintFunction:
-                return stringifyPrintFunction((PrintFunction) statement);
-            case GetFunction:
-                return stringifyGetFunction((GetFunction) statement);
-//            case IfStatement:
-//                return stringifyIfStatement((IfStatement) statement);
-            case ReturnStatement:
-                return stringifyReturnStatement((ReturnStatement) statement);
-            default:
-                throw new UnrecognizedStatementException(statement);
-        }
+        return switch (statement.kind()) {
+            case NumericLiteral -> stringifyNumber((NumericLiteral) statement);
+            case CharacterLiteral -> stringifyCharacter((CharacterLiteral) statement);
+            case StringLiteral -> stringifyString((StringLiteral) statement);
+            case ArrayLiteral -> stringifyArray((ArrayLiteral) statement);
+            case SetLiteral -> stringifySet((SetLiteral) statement);
+            case Identifier -> stringifyIdentifier((Identifier) statement);
+            case EllipsisStatement -> stringifyContinueStatement((EllipsisStatement) statement);
+            case BinaryExpression -> "{\n" + stringifyBinaryExpression((BinaryExpression) statement) + "}";
+            case IndexExpression -> stringifyIndexExpression((IndexExpression) statement);
+            case DataDeclaration -> stringifyDataDeclaration((DataDeclaration) statement);
+            case VariableDeclaration -> "{" + stringifyVariableDeclaration((VariableDeclaration) statement) + "}";
+            case FunctionDeclaration -> "{" + stringifyFunctionDeclaration((FunctionDeclaration) statement) + "}";
+            case AssignmentExpression -> "{" + stringifyAssignmentExpression((AssignmentExpression) statement) + "}";
+            case CallExpression -> stringifyCallExpression((CallExpression) statement);
+            case PrintFunction -> stringifyPrintFunction((PrintFunction) statement);
+            case GetFunction -> stringifyGetFunction((GetFunction) statement);
+//            case IfStatement -> stringifyIfStatement((IfStatement) statement);
+            case ReturnStatement -> stringifyReturnStatement((ReturnStatement) statement);
+            default -> throw new UnrecognizedStatementException(statement);
+        };
     }
 
     public static String stringifyNumber(NumericLiteral number) {
@@ -165,7 +145,7 @@ public class Utils {
         return result;
     }
 
-    public static String stringifyContinueStatement(ContinueStatement statement) throws Throwable {
+    public static String stringifyContinueStatement(EllipsisStatement statement) throws Throwable {
         return "{kind: " + statement.kind() + "},\n";
     }
 

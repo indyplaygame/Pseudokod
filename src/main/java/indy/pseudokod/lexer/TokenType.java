@@ -1,5 +1,10 @@
 package indy.pseudokod.lexer;
 
+/**
+ * Represents the various types of tokens that can be recognized during the lexical analysis of source code.
+ * These token types are used by the lexer to categorize the raw characters from the source code into
+ * meaningful units for the parser.
+ */
 public enum TokenType {
     Number,
     Character,

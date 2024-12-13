@@ -9,11 +9,11 @@ public class NumberOutOfRangeException extends Exception {
         super("Number " + number.value() + " is out of range " + (range.left_inclusive() ? "[" : "(") + range.left_bound() + ", " + range.right_bound() + (range.right_inclusive() ? "]" : ")") + ".");
     }
 
-    public NumberOutOfRangeException(NumberValue number, SetValue set) throws InvalidConversionDataTypeException {
+    public NumberOutOfRangeException(NumberValue number, SetValue set) throws ConversionDataTypeException {
         super("Number " + number.value() + " is not in set " + stringifySet(set) + ".");
     }
 
-    private static String stringifySet(SetValue set) throws InvalidConversionDataTypeException {
+    private static String stringifySet(SetValue set) throws ConversionDataTypeException {
         StringBuilder result = new StringBuilder("{");
         List<RuntimeValue> values = set.value();
 

@@ -5,9 +5,12 @@ import indy.pseudokod.exceptions.UnrecognizedCharacterException;
 
 import java.util.*;
 
+/**
+ * The {@link Lexer} provides functionality to tokenize a source string into meaningful tokens.
+ * This is a fundamental step in the interpretation or compilation of source code.
+ */
 public class Lexer {
-
-    static final Map<String, TokenType> keywords = new HashMap<>();
+    private static final Map<String, TokenType> keywords = new HashMap<>();
 
     static {
         keywords.put("data", TokenType.DataToken);
@@ -73,7 +76,15 @@ public class Lexer {
         keywords.put("zaimportuj", TokenType.ImportToken);
     }
 
-    public static List<Token> tokenize(String source) throws Throwable {
+    /**
+     * Converts the input source string into a list of tokens by analyzing its content.
+     *
+     * @param source The source string to be tokenized.
+     * @return A list of {@link Token} objects representing the tokens in the source.
+     * @throws StringTerminationException Thrown if a string literal is not properly terminated with a quote character.
+     * @throws UnrecognizedCharacterException Thrown if an unrecognizable character is encountered in the source.
+     */
+    public static List<Token> tokenize(String source) throws UnrecognizedCharacterException, StringTerminationException {
         final ArrayList<Token> tokens = new ArrayList<>();
         final ArrayList<String> src = new ArrayList<>(List.of(source.split("")));
         final ArrayList<String> operators = new ArrayList<>(List.of(new String[]{"+", "-", "*"}));
@@ -94,10 +105,9 @@ public class Lexer {
                         src.remove(0);
                     }
                 } else if(src.get(0).equals("*")) {
-                    src.remove(0);
-                    while(!src.isEmpty() && !src.get(0).equals("*")) {
-                        src.remove(0);
-                    }
+                    do src.remove(0);
+                    while (!src.isEmpty() && !src.get(0).equals("*"));
+
                     if(!src.isEmpty() && src.get(0).equals("*")) src.remove(0);
                     if(!src.isEmpty() && src.get(0).equals("/")) src.remove(0);
                 } else tokens.add(new Token(value, TokenType.BinaryOperator, line));
