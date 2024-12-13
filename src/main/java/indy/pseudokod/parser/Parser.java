@@ -152,7 +152,6 @@ public class Parser {
             case DoStatement:
                 return this.parseDoStatement();
             case ReturnToken:
-                // TODO: Fix return statements in the if statement
                 this.eat();
                 Expression value = this.parseExpression();
 
