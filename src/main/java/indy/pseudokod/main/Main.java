@@ -2,6 +2,8 @@ package indy.pseudokod.main;
 
 import indy.pseudokod.ast.Program;
 import indy.pseudokod.environment.Environment;
+import indy.pseudokod.exceptions.DataTypeMismatchException;
+import indy.pseudokod.exceptions.VariableDeclaredException;
 import indy.pseudokod.functions.Functions;
 import indy.pseudokod.parser.Parser;
 import indy.pseudokod.runtime.Interpreter;
@@ -15,10 +17,17 @@ import java.security.CodeSource;
 import java.util.Scanner;
 
 public class Main {
-    static final Parser parser = new Parser();
-    static Environment env;
+    private static Environment env;
 
-    public static void setupEnvironment() throws Throwable {
+    /**
+     * This function sets up the environment for the interpreter,
+     * declares and initializes various built-in variables and functions,
+     * such as boolean values, numbers, strings, ranges, and native functions.
+     *
+     * @throws VariableDeclaredException If a variable with the same name is already declared.
+     * @throws DataTypeMismatchException If there is a data type mismatch.
+     */
+    public static void setupEnvironment() throws VariableDeclaredException, DataTypeMismatchException {
         env = new Environment();
         env.declareVariable("true", ValueType.Boolean, true, new BooleanValue(true));
         env.declareVariable("false", ValueType.Boolean, true, new BooleanValue(false));
@@ -60,11 +69,24 @@ public class Main {
         env.declareVariable("poczatek", ValueType.NativeFunction, true, new NativeFunction(QueueValue::front));
     }
 
+    /**
+     * Reads the content of a file located at the specified path.
+     *
+     * @param path The path to the file to be read.
+     * @return A {@link String} containing the content of the file.
+     * @throws IOException If an I/O error occurs while reading the file.
+     */
     public static String readFile(String path) throws IOException {
         Path filePath = Paths.get(path);
         return Files.readString(filePath);
     }
 
+    /**
+     * This function starts a Read-Eval-Print Loop (REPL) for the Pseudokod interpreter.
+     * The REPL allows user to interactively enter and execute Pseudokod code.
+     *
+     * @throws Throwable If an error occurs during the execution of the REPL.
+     */
     public static void repl() throws Throwable {
         final Scanner scanner = new Scanner(System.in);
         String input;
@@ -75,6 +97,7 @@ public class Main {
             System.out.print("> ");
             input = scanner.nextLine();
 
+            final Parser parser = new Parser();
             final Program program = parser.produceAST(input);
 
             if(input.equals("exit")) return;
@@ -84,6 +107,13 @@ public class Main {
         }
     }
 
+    /**
+     * This function runs the Pseudokod program located at the specified file path.
+     * If the file does not exist in the given path, the function attempts to locate it in the directory of the interpreter.
+     *
+     * @param path The path to the Pseudokod file to be interpreted.
+     * @throws Throwable If an error occurs during the execution of the Pseudokod program.
+     */
     public static void run(String path) throws Throwable {
         if(!(new File(path)).exists()) {
             CodeSource source = Main.class.getProtectionDomain().getCodeSource();
@@ -92,12 +122,22 @@ public class Main {
             path = dir + "\\" + path;
         }
 
+        final Parser parser = new Parser();
         final String code = readFile(path);
         final Program program = parser.produceAST(code);
 
         Interpreter.evaluate(program, env);
     }
 
+    /**
+     * The main entry point of the Pseudokod interpreter.
+     * This function initializes the environment, runs the Pseudokod program, and provides a Read-Eval-Print Loop (REPL) for interactive execution.
+     *
+     * @param args Command-line arguments. The first argument can be the path to a Pseudokod file to be executed.
+     *             If no argument is provided, the interpreter starts a REPL.
+     *             The second argument, if present, should be "-debug" to display the execution time.
+     * @throws Throwable If an error occurs during the execution of the Pseudokod program or the REPL.
+     */
     public static void main(String[] args) throws Throwable {
         double start = System.currentTimeMillis();
         setupEnvironment();

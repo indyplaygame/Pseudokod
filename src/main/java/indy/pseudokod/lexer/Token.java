@@ -1,25 +1,10 @@
 package indy.pseudokod.lexer;
 
-public class Token {
-    private String value = null;
-    private TokenType type = null;
-    private final int line;
-
-    public Token(String value, TokenType type, int line) {
-        this.value = value;
-        this.type = type;
-        this.line = line;
-    }
-
-    public String value() {
-        return this.value;
-    }
-
-    public TokenType type() {
-        return this.type;
-    }
-
-    public int line() {
-        return this.line;
-    }
-}
+/**
+ * Represents a token produced during the lexical analysis phase of parsing.
+ *
+ * @param value A textual value of the token.
+ * @param type A {@link TokenType} which categorizes the token's role in the source code.
+ * @param line The line number where the token appears in the source code, aiding in error reporting and debugging.
+ */
+public record Token(String value, TokenType type, int line) {}

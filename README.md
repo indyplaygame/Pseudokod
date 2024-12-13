@@ -162,7 +162,7 @@ for control_variable = 0, 1, ..., n
 function function_name:
   data:
     data_type variable_name (∈ range <- value);
-    data_type variable1_name (∈ range <- value);
+    data_type argument_name* (∈ range <- value);
     ...
   result:
     data_type (variable_name): possible_values | range;
@@ -205,22 +205,23 @@ UnexpectedTokenException: Unexpected token found during parsing: {value: "value"
 MissingTokenException: Unexpected token found. Expected 'type' token, found 'type'.
 ASTNodeNotSetupException: This AST node has not yet been setup for interpretation: type.
 DivisionByZeroException: Division by zero is not allowed.
-VariableDeclaredException: Cannot declare a new variable: variable named 'name' is already defined.
-VariableNotDeclaredException: Cannot assign a value to variable: variable named 'name' does not exist.
+VariableDeclaredException: Cannot declare a new variable: variable named 'name' already exists.
+VariableNotDeclaredException: Cannot assign a value to variable: variable named 'name' was not declared in the scope.
 IllegalDataTypeException: Data type 'type' is not allowed here.
 MissingIdentifierException: Identifier expected in 'expression', but found: statement.
-IncompatibleDataTypeException: Data type 'type' was expected here, but received 'type'.
+DataTypeMismatchException: Data type 'type' was expected here, but received 'type'.
+IncompatibleDataTypesException: Cannot compare left to right, incompatible data types.
 ConstantAssignmentException: Cannot assign value to 'name' because it is a constant.
 StringTerminationException: Unterminated string found, expected the 'character' character to terminate the string.
 CharactersAmountException: Expected single character (found 'amount' of them).
 IllegalIndexTypeException: Identifier or NumericLiteral expected as list index, received 'type'.
-InvalidConversionDataTypeException: 'Type' cannot be converted to 'type'.
+ConversionDataTypeException: 'Type' cannot be converted to 'type'.
 IndexOutOfRangeException: Index index out of range for length length.
 InvalidSetSyntaxException: Invalid set syntax, please check the documentation for valid set syntax.
-InvalidCallableException: type is not callable data type.
+InvalidCallableException: type is not callable.
 ArgumentsAmountException: Expected amount arguments, but received amount.
 IllegalExpressionStartException: Illegal start of expression, expected 'type'.
-MissingExpressionException: Expected 'type' expression, but received 'received'.
+InvalidExpressionException: Expected 'type' expression, but received 'received'.
 UnexpectedNodeException: Node type was not expected here.
 NumberOutOfRangeException: Number number is out of range range.
 IncorrectFunctionDeclarationSyntaxException: Unexpected token found inside function declaration statement.

@@ -1,14 +1,20 @@
 package indy.pseudokod.runtime.values;
 
-public class NullValue extends RuntimeValue{
-    String value;
-
+/**
+ * Represents a null value, as a {@link RuntimeValue} with type {@link ValueType#NULL}, in the runtime environment.
+ */
+public class NullValue extends RuntimeValue {
+    /**
+     * Constructs a new instance of {@link NullValue}.
+     */
     public NullValue() {
         super(ValueType.NULL);
-        this.value = null;
     }
 
+    /**
+     * @return {@code null}, representing the absence of a value.
+     */
     public String value() {
-        return this.value;
+        return null;
     }
 }
